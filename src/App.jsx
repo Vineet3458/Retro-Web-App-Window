@@ -1,14 +1,17 @@
-import { useState } from 'react'
-import './index.css'
-import Background from './components/Background'
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+
+import Background from "./components/Background";
+import PixelizerPage from "./pages/PixelizerPage";
 
 function App() {
-
   return (
-    <>
-      <Background />
-    </>
-  )
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Background />} />
+        <Route path="/pixelizer" element={<PixelizerPage />} />
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
-export default App
+export default App;
