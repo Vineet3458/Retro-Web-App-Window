@@ -1,3 +1,63 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+body {
+  font-family: 'VT323', monospace;
+  font-size: 1.25rem;
+  overflow: hidden;
+  user-select: none;
+  image-rendering: pixelated;
+}
+
+.font-pixel {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+/* Windows 95 style pixel borders */
+.pixel-border {
+  box-shadow: 
+    inset -2px -2px #0a0a0a,
+    inset 2px 2px #ffffff,
+    inset -4px -4px #808080,
+    inset 4px 4px #dfdfdf;
+  background-color: #c0c0c0;
+  color: #000;
+}
+
+.pixel-border-in {
+  box-shadow: 
+    inset -2px -2px #ffffff,
+    inset 2px 2px #0a0a0a,
+    inset -4px -4px #dfdfdf,
+    inset 4px 4px #808080;
+  background-color: #ffffff;
+  color: #000;
+}
+
+/* Taskbar / Topbar look */
+.pixel-bar {
+  background-color: #0000aa;
+  color: white;
+}
+
+/* Button look */
+.pixel-btn {
+  box-shadow: 
+    inset -2px -2px #0a0a0a,
+    inset 2px 2px #ffffff,
+    inset -4px -4px #808080,
+    inset 4px 4px #dfdfdf;
+  background-color: #c0c0c0;
+}
+.pixel-btn:active {
+  box-shadow: 
+    inset -2px -2px #ffffff,
+    inset 2px 2px #0a0a0a,
+    inset -4px -4px #dfdfdf,
+    inset 4px 4px #808080;
+}
+
+.cursor-pixel {
+  cursor: crosshair; /* Simplest fallback, better: url to a pixel cursor */
+}

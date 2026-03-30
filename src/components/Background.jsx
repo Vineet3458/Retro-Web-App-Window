@@ -1,35 +1,119 @@
 import React, { useState } from "react";
-import wallpaper from "../assets/wallpaper.gif";
-import RetroPixelizer from "../assets/RetroPixelizerImg.jpeg";
-import { useNavigate } from "react-router-dom";
+import wallpaperGif from "../assets/wallpaper.gif";
+import RetroPixelizerImg from "../assets/RetroPixelizerImg.jpeg";
 import Icon from "./Icon";
 import Window from "./Window";
+import CalculatorApp from "./apps/CalculatorApp";
+import NotepadApp from "./apps/NotepadApp";
+import WallpaperApp from "./apps/WallpaperApp";
+import ChatbotApp from "./apps/ChatbotApp";
+import PersonalSpaceApp from "./apps/PersonalSpaceApp";
+import { Calculator, NotepadTextDashed, Image, Bot, User } from "lucide-react";
+
+const APPS = [
+  { id: "pixelizer", label: "Retro Pixelizer", src: RetroPixelizerImg, component: null, isIframe: true, url: "https://retro-pixelizer.vercel.app/" },
+  { id: "calculator", label: "Calculator", IconComponent: Calculator, component: CalculatorApp },
+  { id: "notepad", label: "Notepad", IconComponent: NotepadTextDashed, component: NotepadApp },
+  { id: "wallpaper", label: "Wallpapers", IconComponent: Image, component: WallpaperApp },
+  { id: "chatbot", label: "AI Chatbot", IconComponent: Bot, component: ChatbotApp },
+  { id: "personal", label: "User Space", IconComponent: User, component: PersonalSpaceApp },
+];
 
 const Background = () => {
-  const navigate = useNavigate();
+  const [openWindows, setOpenWindows] = useState([]);
+  const [activeWindow, setActiveWindow] = useState(null);
+  const [wallpaper, setWallpaper] = useState({ url: wallpaperGif, color: '#008080' });
+  const [time, setTime] = useState(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
 
-  const [openPixelizer, setOpenPixelizer] = useState(false);
+  // Update time every minute
+  React.useEffect(() => {
+    const timer = setInterval(() => {
+      setTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+    }, 60000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const openApp = (app) => {
+    if (!openWindows.find(w => w.id === app.id)) {
+      setOpenWindows([...openWindows, { ...app, zIndex: openWindows.length + 1 }]);
+    }
+    setActiveWindow(app.id);
+  };
+
+  const closeWindow = (id) => {
+    setOpenWindows(openWindows.filter((w) => w.id !== id));
+    if (activeWindow === id) {
+      setActiveWindow(null);
+    }
+  };
+
+  const focusWindow = (id) => {
+    if (activeWindow === id) return;
+    setOpenWindows(openWindows.map(w => ({
+      ...w,
+      zIndex: w.id === id ? Math.max(...openWindows.map(ow => ow.zIndex)) + 1 : w.zIndex
+    })));
+    setActiveWindow(id);
+  };
 
   return (
     <div
-      className="w-full h-screen bg-center bg-cover p-6"
-      style={{ backgroundImage: `url(${wallpaper})` }}
+      className="w-full h-screen bg-center bg-cover relative overflow-hidden flex flex-col font-pixel cursor-pixel"
+      style={{ background: wallpaper.url ? `url(${wallpaper.url}) center/cover` : wallpaper.color }}
     >
-      {/* Desktop Icon */}
-      <Icon
-        src={RetroPixelizer}
-        label="Retro Pixelizer"
-        onClick={() => navigate("/pixelizer")}
-      />
+      {/* Desktop Area representing the windows */}
+      <div className="flex-1 relative p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 auto-rows-min content-start">
+        {APPS.map(app => (
+          <Icon
+            key={app.id}
+            src={app.src}
+            IconComponent={app.IconComponent}
+            label={app.label}
+            onClick={() => openApp(app)}
+          />
+        ))}
+      </div>
 
-      {/* Fullscreen App */}
-      {openPixelizer && (
-        <Window
-          title="Retro Pixelizer"
-          url="https://retro-pixelizer.vercel.app/"
-          onClose={() => setOpenPixelizer(false)}
-        />
-      )}
+      {/* Render open windows */}
+      {openWindows.map(app => (
+        <div key={app.id} onMouseDown={() => focusWindow(app.id)} style={{ zIndex: app.zIndex, position: 'absolute' }}>
+          <Window title={app.label} onClose={() => closeWindow(app.id)}>
+            {app.isIframe ? (
+              <iframe
+                src={app.url}
+                title={app.label}
+                className="w-full h-full border-none"
+              ></iframe>
+            ) : (
+              <app.component setWallpaper={app.id === 'wallpaper' ? setWallpaper : undefined} />
+            )}
+          </Window>
+        </div>
+      ))}
+
+      {/* Retro Taskbar */}
+      <div className="h-10 border-t-2 border-white pixel-bar flex items-center px-2 justify-between z-[9999] relative">
+        <div className="flex gap-2 h-full items-center py-1">
+          <button className="pixel-btn h-full px-4 font-bold active:translate-y-px">
+            START
+          </button>
+          {/* Open apps on taskbar */}
+          <div className="hidden sm:flex gap-1 h-full pl-2 border-l-2 border-dashed border-gray-400">
+            {openWindows.map(app => (
+              <button 
+                key={app.id} 
+                className={`pixel-btn px-2 text-xs truncate max-w-[120px] ${activeWindow === app.id ? 'pixel-border-in' : ''}`}
+                onClick={() => focusWindow(app.id)}
+              >
+                {app.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="pixel-border-in px-2 py-1 text-xs font-bold text-black cursor-default bg-gray-200">
+          {time}
+        </div>
+      </div>
     </div>
   );
 };
