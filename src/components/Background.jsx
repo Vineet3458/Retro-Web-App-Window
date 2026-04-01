@@ -3,11 +3,13 @@ import wallpaperGif from "../assets/wallpaper.gif";
 import RetroPixelizerImg from "../assets/RetroPixelizerImg.jpeg";
 import Icon from "./Icon";
 import Window from "./Window";
-import CalculatorApp from "./apps/CalculatorApp";
-import NotepadApp from "./apps/NotepadApp";
-import WallpaperApp from "./apps/WallpaperApp";
-import ChatbotApp from "./apps/ChatbotApp";
-import PersonalSpaceApp from "./apps/PersonalSpaceApp";
+import CalculatorApp from "../apps/CalculatorApp";
+import NotepadApp from "../apps/NotepadApp";
+import WallpaperApp from "../apps/WallpaperApp";
+import ChatbotApp from "../apps/ChatbotApp";
+import PersonalSpaceApp from "../apps/PersonalSpaceApp";
+import SnakeApp from "../apps/SnakeApp";
+import MediaApp from "../apps/MediaApp";
 import { Calculator, NotepadTextDashed, Image, Bot, User } from "lucide-react";
 
 const APPS = [
@@ -17,6 +19,8 @@ const APPS = [
   { id: "wallpaper", label: "Wallpapers", src: "https://raw.githubusercontent.com/halfmage/pixelarticons/master/svg/image.svg", component: WallpaperApp },
   { id: "chatbot", label: "AI Chatbot", src: "https://raw.githubusercontent.com/halfmage/pixelarticons/master/svg/robot.svg", component: ChatbotApp },
   { id: "personal", label: "User Space", src: "https://raw.githubusercontent.com/halfmage/pixelarticons/master/svg/user.svg", component: PersonalSpaceApp },
+  { id: "snake", label: "Snake JS", src: "https://raw.githubusercontent.com/halfmage/pixelarticons/master/svg/gamepad.svg", component: SnakeApp },
+  { id: "media", label: "Media Player", src: "https://raw.githubusercontent.com/halfmage/pixelarticons/master/svg/radio-handheld.svg", component: MediaApp },
 ];
 
 const Background = () => {
