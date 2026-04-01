@@ -6,6 +6,11 @@ body {
   overflow: hidden;
   user-select: none;
   image-rendering: pixelated;
+  /* Retro text highlight color */
+  ::selection {
+    background-color: #0000aa;
+    color: #ffffff;
+  }
 }
 
 .font-pixel {
@@ -14,50 +19,83 @@ body {
   line-height: 1.5;
 }
 
-/* Windows 95 style pixel borders */
+/* Beautiful vibrant Windows 95 style pixel borders */
 .pixel-border {
   box-shadow: 
     inset -2px -2px #0a0a0a,
     inset 2px 2px #ffffff,
-    inset -4px -4px #808080,
-    inset 4px 4px #dfdfdf;
+    inset -3px -3px #404040,
+    inset 3px 3px #dfdfdf;
   background-color: #c0c0c0;
   color: #000;
+  border: 1px solid #000;
 }
 
 .pixel-border-in {
   box-shadow: 
     inset -2px -2px #ffffff,
     inset 2px 2px #0a0a0a,
-    inset -4px -4px #dfdfdf,
-    inset 4px 4px #808080;
+    inset -3px -3px #dfdfdf,
+    inset 3px 3px #404040;
   background-color: #ffffff;
   color: #000;
+  border: 1px solid #0a0a0a;
 }
 
-/* Taskbar / Topbar look */
+/* Taskbar / Topbar look with vibrant blue gradient */
 .pixel-bar {
-  background-color: #0000aa;
+  background: linear-gradient(90deg, #0000aa 0%, #0088ff 100%);
   color: white;
+  border-bottom: 2px solid #000;
 }
 
-/* Button look */
+/* Polished button look */
 .pixel-btn {
   box-shadow: 
     inset -2px -2px #0a0a0a,
     inset 2px 2px #ffffff,
-    inset -4px -4px #808080,
-    inset 4px 4px #dfdfdf;
+    inset -3px -3px #404040,
+    inset 3px 3px #dfdfdf;
   background-color: #c0c0c0;
+  border: 1px solid #0a0a0a;
+  transition: all 0.05s ease;
 }
 .pixel-btn:active {
   box-shadow: 
     inset -2px -2px #ffffff,
     inset 2px 2px #0a0a0a,
-    inset -4px -4px #dfdfdf,
-    inset 4px 4px #808080;
+    inset -3px -3px #dfdfdf,
+    inset 3px 3px #404040;
+  transform: translateY(1px);
 }
 
 .cursor-pixel {
-  cursor: crosshair; /* Simplest fallback, better: url to a pixel cursor */
+  cursor: crosshair;
+}
+
+/* Beautiful custom retro scrollbars */
+::-webkit-scrollbar {
+  width: 14px;
+  height: 14px;
+}
+
+::-webkit-scrollbar-track {
+  background-image: repeating-linear-gradient(45deg, #c0c0c0 25%, transparent 25%, transparent 75%, #c0c0c0 75%, #c0c0c0), repeating-linear-gradient(45deg, #c0c0c0 25%, #ffffff 25%, #ffffff 75%, #c0c0c0 75%, #c0c0c0);
+  background-position: 0 0, 2px 2px;
+  background-size: 4px 4px;
+  border-left: 1px solid #0a0a0a;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #c0c0c0;
+  box-shadow: 
+    inset -2px -2px #0a0a0a,
+    inset 2px 2px #ffffff,
+    inset -3px -3px #404040,
+    inset 3px 3px #dfdfdf;
+  border: 1px solid #0a0a0a;
+}
+
+::-webkit-scrollbar-corner {
+  background: #c0c0c0;
 }

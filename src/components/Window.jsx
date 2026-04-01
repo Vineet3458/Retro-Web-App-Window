@@ -31,20 +31,20 @@ const Window = ({ title, onClose, children, defaultSize = { width: 600, height: 
           <span className="font-pixel text-[10px] sm:text-xs pt-1">{title}</span>
         </div>
         <div className="flex items-center gap-1 auto-cursor">
-          <button className="pixel-btn bg-gray-300 px-1 py-0.5" onClick={() => {}}>
+          <button className="pixel-btn px-1 py-0.5" onClick={() => {}}>
             <Minus size={14} className="text-black" />
           </button>
-          <button className="pixel-btn bg-gray-300 px-1 py-0.5" onClick={() => setIsMaximized(!isMaximized)}>
+          <button className="pixel-btn px-1 py-0.5" onClick={() => setIsMaximized(!isMaximized)}>
             <Square size={14} className="text-black" />
           </button>
-          <button className="pixel-btn bg-gray-300 px-1 py-0.5" onClick={onClose}>
+          <button className="pixel-btn px-1 py-0.5" onClick={onClose}>
             <X size={14} className="text-black" />
           </button>
         </div>
       </div>
 
       {/* App Content */}
-      <div className="flex-1 bg-gray-200 pixel-border-in m-1 p-1 overflow-auto cursor-default text-black">
+      <div className="flex-1 pixel-border-in m-1 p-1 overflow-auto cursor-default text-black">
         {children}
       </div>
     </Rnd>

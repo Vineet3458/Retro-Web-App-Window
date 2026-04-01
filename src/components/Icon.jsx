@@ -8,7 +8,7 @@ const Icon = ({ src, IconComponent, label, onClick }) => {
       title={label}
     >
       {src ? (
-        <img src={src} alt={label} className="w-10 h-10 object-cover pixel-border-in mb-1" />
+        <img src={src} alt={label} className="w-10 h-10 object-contain p-1 bg-white pixel-border-in mb-1" />
       ) : IconComponent ? (
         <div className="w-10 h-10 flex items-center justify-center text-white drop-shadow-md mb-1 pb-1">
           <IconComponent size={32} />

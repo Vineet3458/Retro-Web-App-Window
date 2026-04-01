@@ -22,7 +22,7 @@ const CalculatorApp = () => {
   const clear = () => setDisplay('0');
 
   return (
-    <div className="flex flex-col h-full bg-gray-200">
+    <div className="flex flex-col h-full">
       <div className="bg-white text-right p-2 text-2xl font-pixel pixel-border-in mb-2 truncate">
         {display}
       </div>

@@ -12,11 +12,11 @@ import { Calculator, NotepadTextDashed, Image, Bot, User } from "lucide-react";
 
 const APPS = [
   { id: "pixelizer", label: "Retro Pixelizer", src: RetroPixelizerImg, component: null, isIframe: true, url: "https://retro-pixelizer.vercel.app/" },
-  { id: "calculator", label: "Calculator", IconComponent: Calculator, component: CalculatorApp },
-  { id: "notepad", label: "Notepad", IconComponent: NotepadTextDashed, component: NotepadApp },
-  { id: "wallpaper", label: "Wallpapers", IconComponent: Image, component: WallpaperApp },
-  { id: "chatbot", label: "AI Chatbot", IconComponent: Bot, component: ChatbotApp },
-  { id: "personal", label: "User Space", IconComponent: User, component: PersonalSpaceApp },
+  { id: "calculator", label: "Calculator", src: "https://raw.githubusercontent.com/halfmage/pixelarticons/master/svg/calculator.svg", component: CalculatorApp },
+  { id: "notepad", label: "Notepad", src: "https://raw.githubusercontent.com/halfmage/pixelarticons/master/svg/article.svg", component: NotepadApp },
+  { id: "wallpaper", label: "Wallpapers", src: "https://raw.githubusercontent.com/halfmage/pixelarticons/master/svg/image.svg", component: WallpaperApp },
+  { id: "chatbot", label: "AI Chatbot", src: "https://raw.githubusercontent.com/halfmage/pixelarticons/master/svg/robot.svg", component: ChatbotApp },
+  { id: "personal", label: "User Space", src: "https://raw.githubusercontent.com/halfmage/pixelarticons/master/svg/user.svg", component: PersonalSpaceApp },
 ];
 
 const Background = () => {
@@ -92,9 +92,10 @@ const Background = () => {
       ))}
 
       {/* Retro Taskbar */}
-      <div className="h-10 border-t-2 border-white pixel-bar flex items-center px-2 justify-between z-[9999] relative">
-        <div className="flex gap-2 h-full items-center py-1">
-          <button className="pixel-btn h-full px-4 font-bold active:translate-y-px">
+      <div className="h-12 border-t-2 border-[#fff] outline outline-1 outline-[#000] pixel-bar flex items-center px-2 justify-between z-[9999] relative">
+        <div className="flex gap-2 h-full items-center py-1.5">
+          <button className="pixel-btn h-full px-4 font-bold active:translate-y-px text-black flex items-center gap-2">
+            <img src="https://raw.githubusercontent.com/halfmage/pixelarticons/master/svg/windows.svg" className="w-4 h-4" alt="win" />
             START
           </button>
           {/* Open apps on taskbar */}
@@ -102,15 +103,16 @@ const Background = () => {
             {openWindows.map(app => (
               <button 
                 key={app.id} 
-                className={`pixel-btn px-2 text-xs truncate max-w-[120px] ${activeWindow === app.id ? 'pixel-border-in' : ''}`}
+                className={`pixel-btn px-2 flex items-center gap-2 text-xs truncate max-w-[140px] text-black ${activeWindow === app.id ? 'pixel-border-in bg-[#dfdfdf]' : ''}`}
                 onClick={() => focusWindow(app.id)}
               >
+                {app.src && <img src={app.src} className="w-4 h-4 object-contain" alt="" />}
                 {app.label}
               </button>
             ))}
           </div>
         </div>
-        <div className="pixel-border-in px-2 py-1 text-xs font-bold text-black cursor-default bg-gray-200">
+        <div className="pixel-border-in px-2 py-1 text-xs font-bold text-black cursor-default">
           {time}
         </div>
       </div>
