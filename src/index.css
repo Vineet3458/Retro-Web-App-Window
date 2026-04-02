@@ -2,10 +2,13 @@
 
 :root {
   --retro-bg: #c0c0c0;
+  --retro-bg-light: #dfdfdf;
   --retro-border-light: #ffffff;
   --retro-border-dark: #808080;
   --retro-border-black: #000000;
-  --retro-blue: linear-gradient(90deg, #000080 0%, #1084d0 100%);
+  --retro-blue: #000080;
+  --retro-blue-light: #1084d0;
+  --retro-inactive: #808080;
   --retro-text: #000000;
 }
 
@@ -30,53 +33,50 @@ body {
   line-height: 1.5;
 }
 
-/* CRITICAL: Visual Flair - Scanlines & CRT Effects */
+/* CRITICAL: Professional CRT Glass Effect */
 .scanlines {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(
-    rgba(18, 16, 16, 0) 50%,
-    rgba(0, 0, 0, 0.1) 50%
-  ),
-  linear-gradient(
-    90deg,
-    rgba(255, 0, 0, 0.03),
-    rgba(0, 255, 0, 0.01),
-    rgba(0, 0, 255, 0.03)
-  );
-  background-size: 100% 3px, 3px 100%;
   pointer-events: none;
-  z-index: 10000;
+  z-index: 100000;
+  background: 
+    linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%),
+    linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+  background-size: 100% 3px, 3px 100%;
+  animation: flicker 0.12s infinite;
 }
 
-/* CRT Vignette */
-.scanlines::after {
-  content: "";
+/* Authentic CRT Convex Curve Simulation */
+.crt-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: radial-gradient(circle, rgba(18,16,16,0) 50%, rgba(0,0,0,0.3) 100%);
   pointer-events: none;
+  z-index: 100001;
+  background: radial-gradient(circle, rgba(18,16,16,0) 40%, rgba(0,0,0,0.4) 100%);
+  box-shadow: inset 0 0 100px rgba(0,0,0,0.5);
 }
 
-/* Subtle CRT Flicker */
 @keyframes flicker {
-  0% { opacity: 0.97; }
-  5% { opacity: 0.98; }
-  10% { opacity: 0.99; }
-  15% { opacity: 0.97; }
-  20% { opacity: 0.98; }
+  0% { opacity: 0.98; }
+  5% { opacity: 0.99; }
+  10% { opacity: 0.98; }
+  15% { opacity: 0.99; }
+  20% { opacity: 0.97; }
   25% { opacity: 0.99; }
   100% { opacity: 1; }
 }
 
-.scanlines {
-  animation: flicker 0.1s infinite;
+/* Desktop Tiled Pattern */
+.desktop-pattern {
+  background-color: #008080;
+  background-image: radial-gradient(#007070 1px, transparent 1px);
+  background-size: 4px 4px;
 }
 
 
@@ -98,10 +98,16 @@ body {
   border: 1px solid var(--retro-border-black);
 }
 
-/* Refined Taskbar / Topbar */
+/* Refined Taskbar / Topbar Gradients */
 .pixel-bar {
-  background: var(--retro-blue);
+  background: linear-gradient(90deg, var(--retro-blue) 0%, var(--retro-blue-light) 100%);
   color: white;
+  padding: 2px 4px;
+}
+
+.pixel-bar-inactive {
+  background: var(--retro-inactive);
+  color: #c0c0c0;
   padding: 2px 4px;
 }
 
@@ -122,13 +128,30 @@ body {
   transition: transform 0.05s;
 }
 
-.pixel-btn:active {
+.pixel-btn:active, .pixel-btn-pressed {
   box-shadow: 
     inset 1.5px 1.5px 0px var(--retro-border-dark),
     inset -1.5px -1.5px 0px var(--retro-border-light),
     0px 0px 0px var(--retro-border-black);
   transform: translate(1px, 1px);
 }
+
+/* Authentic Shadow */
+.pixel-shadow {
+  box-shadow: 4px 4px 0px rgba(0,0,0,0.6);
+}
+
+@keyframes snap-in {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.animate-snap {
+  animation: snap-in 0.1s ease-out forwards;
+}
+ pocket-button {
+   image-rendering: auto;
+ }
 
 /* Desktop Icon Hover */
 .icon-container {
@@ -143,9 +166,14 @@ body {
 }
 
 .icon-container.active {
-  background-color: rgba(0, 0, 128, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.8);
+  background-color: rgba(0, 0, 128, 0.4);
 }
+
+.icon-container.active span {
+  background-color: #000080;
+  box-shadow: 0 0 0 1px #808080;
+}
+
 
 .cursor-pixel {
   cursor: url('https://raw.githubusercontent.com/rust-lang/rust-www/master/static/images/cursor.png'), crosshair;
