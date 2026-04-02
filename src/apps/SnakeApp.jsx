@@ -58,28 +58,46 @@ const SnakeApp = () => {
   }, [dir, food, gameOver]);
 
   return (
-    <div className="flex flex-col h-full bg-black text-white p-2 items-center justify-center font-pixel cursor-default focus:outline-none" tabIndex={0}>
-      <div className="flex justify-between w-[300px] mb-2 px-1 border-b border-white">
-        <span>SCORE: {score}</span>
-      </div>
-      <div 
-        className="relative bg-black border-2 border-white"
-        style={{ width: GRID_SIZE * CELL_SIZE, height: GRID_SIZE * CELL_SIZE }}
-      >
-        {snake.map((s, i) => (
-          <div key={i} className="absolute bg-[#00ff00] border border-black" style={{ left: s.x * CELL_SIZE, top: s.y * CELL_SIZE, width: CELL_SIZE, height: CELL_SIZE }} />
-        ))}
-        <div className="absolute bg-[#ff0055]" style={{ left: food.x * CELL_SIZE, top: food.y * CELL_SIZE, width: CELL_SIZE, height: CELL_SIZE, borderRadius: '50%' }} />
-        {gameOver && (
-          <div className="absolute inset-0 bg-black/80 flex flex-col items-center justify-center">
-            <span className="text-[#ff0055] text-xl mb-4 font-bold animate-pulse">GAME OVER</span>
-            <button className="pixel-btn px-4 py-2 text-black bg-white" onClick={resetGame}>PLAY AGAIN</button>
+    <div className="flex flex-col h-full bg-[#111] font-pixel p-4 items-center justify-center focus:outline-none" tabIndex={0}>
+       <div className="w-full max-w-[320px] bg-[#c0c0c0] pixel-border p-4 flex flex-col items-center">
+          <div className="w-full flex justify-between bg-black text-[#00ff00] p-2 mb-4 pixel-border-in text-[10px] items-center">
+            <div className="flex items-center gap-1">
+              <div className="w-2 h-2 bg-[#ff0055] rounded-full animate-pulse"></div>
+              <span>HI-SCORE: 9999</span>
+            </div>
+            <span>SCORE: {score}</span>
           </div>
-        )}
-      </div>
-      <div className="mt-4 text-[10px] text-gray-400 text-center">Use Arrow Keys to move</div>
+
+          <div 
+            className="relative bg-[#9bbc0f] border-4 border-[#0f380f]"
+            style={{ width: GRID_SIZE * CELL_SIZE, height: GRID_SIZE * CELL_SIZE }}
+          >
+            {snake.map((s, i) => (
+              <div key={i} className="absolute bg-[#0f380f] border-[1px] border-[#9bbc0f]" style={{ left: s.x * CELL_SIZE, top: s.y * CELL_SIZE, width: CELL_SIZE, height: CELL_SIZE }} />
+            ))}
+            <div className="absolute bg-[#0f380f] flex items-center justify-center" style={{ left: food.x * CELL_SIZE, top: food.y * CELL_SIZE, width: CELL_SIZE, height: CELL_SIZE }}>
+              <div className="w-2 h-2 bg-[#0f380f] rotate-45"></div>
+            </div>
+            
+            {gameOver && (
+              <div className="absolute inset-0 bg-black/80 flex flex-col items-center justify-center z-20">
+                <span className="text-[#ff0055] text-lg mb-4 font-bold border-2 border-[#ff0055] px-2 py-1 uppercase tracking-tighter">Game Over</span>
+                <button className="pixel-btn px-4 py-2 text-black bg-[#c0c0c0] text-[10px] font-bold" onClick={resetGame}>REBOOT</button>
+              </div>
+            )}
+          </div>
+
+          <div className="mt-4 grid grid-cols-3 gap-2 w-full text-[8px] opacity-70 text-black pointer-events-none">
+             <div className="col-span-3 text-center border-b border-gray-400 pb-1 mb-1 font-bold italic">HANDHELD SYSTEM</div>
+             <div className="col-start-2 flex justify-center"><div className="w-6 h-6 pixel-btn bg-gray-400 flex items-center justify-center font-bold">▲</div></div>
+             <div className="col-start-1 flex justify-center"><div className="w-6 h-6 pixel-btn bg-gray-400 flex items-center justify-center font-bold">◀</div></div>
+             <div className="col-start-2 flex justify-center"><div className="w-6 h-6 pixel-btn bg-gray-400 flex items-center justify-center font-bold">▼</div></div>
+             <div className="col-start-3 flex justify-center"><div className="w-6 h-6 pixel-btn bg-gray-400 flex items-center justify-center font-bold">▶</div></div>
+          </div>
+       </div>
     </div>
   );
 };
 
 export default SnakeApp;
+

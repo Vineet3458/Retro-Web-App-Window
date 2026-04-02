@@ -13,7 +13,7 @@ import MediaApp from "../apps/MediaApp";
 import { Calculator, NotepadTextDashed, Image, Bot, User } from "lucide-react";
 
 const APPS = [
-  { id: "pixelizer", label: "Retro Pixelizer", src: RetroPixelizerImg, component: null, isIframe: true, url: "https://retro-pixelizer.vercel.app/" },
+  { id: "pixelizer", label: "Retro Pixelizer", src: "https://raw.githubusercontent.com/halfmage/pixelarticons/master/svg/camera.svg", component: null, isIframe: true, url: "https://retro-pixelizer.vercel.app/" },
   { id: "calculator", label: "Calculator", src: "https://raw.githubusercontent.com/halfmage/pixelarticons/master/svg/calculator.svg", component: CalculatorApp },
   { id: "notepad", label: "Notepad", src: "https://raw.githubusercontent.com/halfmage/pixelarticons/master/svg/article.svg", component: NotepadApp },
   { id: "wallpaper", label: "Wallpapers", src: "https://raw.githubusercontent.com/halfmage/pixelarticons/master/svg/image.svg", component: WallpaperApp },
@@ -55,7 +55,7 @@ const Background = () => {
     if (activeWindow === id) return;
     setOpenWindows(openWindows.map(w => ({
       ...w,
-      zIndex: w.id === id ? Math.max(...openWindows.map(ow => ow.zIndex)) + 1 : w.zIndex
+      zIndex: w.id === id ? Math.max(...openWindows.map(ow => ow.zIndex), 0) + 1 : w.zIndex
     })));
     setActiveWindow(id);
   };
@@ -63,10 +63,12 @@ const Background = () => {
   return (
     <div
       className="w-full h-screen bg-center bg-cover relative overflow-hidden flex flex-col font-pixel cursor-pixel"
-      style={{ background: wallpaper.url ? `url(${wallpaper.url}) center/cover` : wallpaper.color }}
+      style={{ background: wallpaper.url && wallpaper.url !== '#008080' ? `url(${wallpaper.url}) center/cover` : wallpaper.color }}
     >
-      {/* Desktop Area representing the windows */}
-      <div className="flex-1 relative p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 auto-rows-min content-start">
+      <div className="scanlines"></div>
+
+      {/* Desktop Area */}
+      <div className="flex-1 relative p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 auto-rows-min content-start z-10">
         {APPS.map(app => (
           <Icon
             key={app.id}
@@ -74,6 +76,7 @@ const Background = () => {
             IconComponent={app.IconComponent}
             label={app.label}
             onClick={() => openApp(app)}
+            isActive={activeWindow === app.id}
           />
         ))}
       </div>
@@ -81,8 +84,9 @@ const Background = () => {
       {/* Render open windows */}
       {openWindows.map(app => (
         <div key={app.id} onMouseDown={() => focusWindow(app.id)} style={{ zIndex: app.zIndex, position: 'absolute' }}>
-          <Window title={app.label} onClose={() => closeWindow(app.id)}>
+          <Window title={app.label} icon={app.src} onClose={() => closeWindow(app.id)}>
             {app.isIframe ? (
+
               <iframe
                 src={app.url}
                 title={app.label}
@@ -96,32 +100,38 @@ const Background = () => {
       ))}
 
       {/* Retro Taskbar */}
-      <div className="h-12 border-t-2 border-[#fff] outline outline-1 outline-[#000] pixel-bar flex items-center px-2 justify-between z-[9999] relative">
-        <div className="flex gap-2 h-full items-center py-1.5">
-          <button className="pixel-btn h-full px-4 font-bold active:translate-y-px text-black flex items-center gap-2">
-            <img src="https://raw.githubusercontent.com/halfmage/pixelarticons/master/svg/windows.svg" className="w-4 h-4" alt="win" />
-            START
+      <div className="h-12 pixel-border flex items-center px-1 justify-between z-[9999] relative" style={{ borderRadius: 0, borderLeft: 'none', borderRight: 'none', borderBottom: 'none' }}>
+        <div className="flex gap-2 h-full items-center py-1">
+          <button className="pixel-btn h-full px-3 font-bold active:translate-y-px text-black flex items-center gap-1.5 bg-[#c0c0c0]">
+            <img src="https://raw.githubusercontent.com/halfmage/pixelarticons/master/svg/windows.svg" className="w-5 h-5" alt="win" style={{ imageRendering: 'pixelated' }} />
+            <span className="text-[10px] sm:text-xs">START</span>
           </button>
-          {/* Open apps on taskbar */}
-          <div className="hidden sm:flex gap-1 h-full pl-2 border-l-2 border-dashed border-gray-400">
+          
+          <div className="flex gap-1 h-full pl-2 border-l border-gray-500 overflow-x-auto scrollbar-hide">
             {openWindows.map(app => (
               <button 
                 key={app.id} 
-                className={`pixel-btn px-2 flex items-center gap-2 text-xs truncate max-w-[140px] text-black ${activeWindow === app.id ? 'pixel-border-in bg-[#dfdfdf]' : ''}`}
+                className={`pixel-btn px-2 flex items-center gap-2 text-xs truncate min-w-[100px] max-w-[160px] text-black ${activeWindow === app.id ? 'pixel-border-in bg-[#e0e0e0] font-bold' : 'bg-[#c0c0c0]'}`}
                 onClick={() => focusWindow(app.id)}
               >
-                {app.src && <img src={app.src} className="w-4 h-4 object-contain" alt="" />}
-                {app.label}
+                {app.src && <img src={app.src} className="w-4 h-4 object-contain" alt="" style={{ imageRendering: 'pixelated' }} />}
+                {app.IconComponent && <app.IconComponent size={14} />}
+                <span className="truncate">{app.label}</span>
               </button>
             ))}
           </div>
         </div>
-        <div className="pixel-border-in px-2 py-1 text-xs font-bold text-black cursor-default">
-          {time}
+        
+        <div className="flex items-center gap-2 pr-1">
+          <div className="pixel-border-in px-3 py-1 text-[10px] font-bold text-black cursor-default flex items-center gap-2 bg-[#e0e0e0]">
+            <img src="https://raw.githubusercontent.com/halfmage/pixelarticons/master/svg/volume-high.svg" className="w-4 h-4" alt="sound" style={{ imageRendering: 'pixelated' }} />
+            {time}
+          </div>
         </div>
       </div>
     </div>
   );
 };
+
 
 export default Background;

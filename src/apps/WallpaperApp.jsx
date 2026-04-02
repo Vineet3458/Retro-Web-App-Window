@@ -15,25 +15,41 @@ const wallpapers = [
 
 const WallpaperApp = ({ setWallpaper }) => {
   return (
-    <div className="flex flex-col h-full">
-      <h2 className="font-pixel mb-4 text-center">Select Wallpaper</h2>
-      <div className="grid grid-cols-2 gap-4 flex-1 overflow-auto p-2">
-        {wallpapers.map((w, idx) => (
-          <button
-            key={idx}
-            className="flex flex-col items-center justify-center pixel-btn p-2 h-24 font-pixel text-xs"
-            onClick={() => setWallpaper(w)}
-          >
-            <div 
-              className="w-16 h-12 mb-2 border border-black" 
-              style={{ background: w.url ? `url(${w.url}) center/cover` : w.color }}
-            ></div>
-            <span>{w.name}</span>
-          </button>
-        ))}
+    <div className="flex flex-col h-full bg-[#c0c0c0] font-pixel p-2">
+      <div className="mb-4 text-center p-2 border-b-2 border-dashed border-gray-400">
+        <h2 className="text-xs uppercase tracking-widest text-[#000080] font-bold">Display Properties</h2>
+      </div>
+      
+      <div className="flex-1 overflow-auto p-4 bg-[#dfdfdf] pixel-border-in custom-scrollbar">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
+          {wallpapers.map((w, idx) => (
+            <button
+              key={idx}
+              className="flex flex-col items-center group transition-transform hover:scale-105 active:scale-95"
+              onClick={() => setWallpaper(w)}
+            >
+              <div className="p-1 pixel-border bg-white mb-2 group-hover:border-[#000080]">
+                <div 
+                  className="w-24 h-16 border border-black shadow-inner" 
+                  style={{ 
+                    background: w.url ? `url(${w.url}) center/cover` : w.color,
+                    imageRendering: 'pixelated'
+                  }}
+                ></div>
+              </div>
+              <span className="text-[8px] font-bold text-center text-black uppercase">{w.name}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-4 flex justify-end gap-2">
+        <button className="pixel-btn text-[9px] px-4 py-1" onClick={() => {}}>OK</button>
+        <button className="pixel-btn text-[9px] px-4 py-1" onClick={() => {}}>CANCEL</button>
       </div>
     </div>
   );
 };
 
 export default WallpaperApp;
+

@@ -1,16 +1,27 @@
 @import "tailwindcss";
 
+:root {
+  --retro-bg: #c0c0c0;
+  --retro-border-light: #ffffff;
+  --retro-border-dark: #808080;
+  --retro-border-black: #000000;
+  --retro-blue: linear-gradient(90deg, #000080 0%, #1084d0 100%);
+  --retro-text: #000000;
+}
+
 body {
   font-family: 'VT323', monospace;
   font-size: 1.25rem;
   overflow: hidden;
   user-select: none;
   image-rendering: pixelated;
-  /* Retro text highlight color */
-  ::selection {
-    background-color: #0000aa;
-    color: #ffffff;
-  }
+  background-color: #008080;
+}
+
+/* Retro text highlight */
+::selection {
+  background-color: #0000aa;
+  color: #ffffff;
 }
 
 .font-pixel {
@@ -19,83 +30,147 @@ body {
   line-height: 1.5;
 }
 
-/* Beautiful vibrant Windows 95 style pixel borders */
+/* CRITICAL: Visual Flair - Scanlines & CRT Effects */
+.scanlines {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    rgba(18, 16, 16, 0) 50%,
+    rgba(0, 0, 0, 0.1) 50%
+  ),
+  linear-gradient(
+    90deg,
+    rgba(255, 0, 0, 0.03),
+    rgba(0, 255, 0, 0.01),
+    rgba(0, 0, 255, 0.03)
+  );
+  background-size: 100% 3px, 3px 100%;
+  pointer-events: none;
+  z-index: 10000;
+}
+
+/* CRT Vignette */
+.scanlines::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, rgba(18,16,16,0) 50%, rgba(0,0,0,0.3) 100%);
+  pointer-events: none;
+}
+
+/* Subtle CRT Flicker */
+@keyframes flicker {
+  0% { opacity: 0.97; }
+  5% { opacity: 0.98; }
+  10% { opacity: 0.99; }
+  15% { opacity: 0.97; }
+  20% { opacity: 0.98; }
+  25% { opacity: 0.99; }
+  100% { opacity: 1; }
+}
+
+.scanlines {
+  animation: flicker 0.1s infinite;
+}
+
+
+/* Premium Retro Pixel Borders */
 .pixel-border {
+  background-color: var(--retro-bg);
   box-shadow: 
-    inset -2px -2px #0a0a0a,
-    inset 2px 2px #ffffff,
-    inset -3px -3px #404040,
-    inset 3px 3px #dfdfdf;
-  background-color: #c0c0c0;
-  color: #000;
-  border: 1px solid #000;
+    inset 1.5px 1.5px 0px var(--retro-border-light),
+    inset -1.5px -1.5px 0px var(--retro-border-dark),
+    1px 1px 0px var(--retro-border-black);
+  border: 1px solid var(--retro-border-black);
 }
 
 .pixel-border-in {
-  box-shadow: 
-    inset -2px -2px #ffffff,
-    inset 2px 2px #0a0a0a,
-    inset -3px -3px #dfdfdf,
-    inset 3px 3px #404040;
   background-color: #ffffff;
-  color: #000;
-  border: 1px solid #0a0a0a;
-}
-
-/* Taskbar / Topbar look with vibrant blue gradient */
-.pixel-bar {
-  background: linear-gradient(90deg, #0000aa 0%, #0088ff 100%);
-  color: white;
-  border-bottom: 2px solid #000;
-}
-
-/* Polished button look */
-.pixel-btn {
   box-shadow: 
-    inset -2px -2px #0a0a0a,
-    inset 2px 2px #ffffff,
-    inset -3px -3px #404040,
-    inset 3px 3px #dfdfdf;
-  background-color: #c0c0c0;
-  border: 1px solid #0a0a0a;
-  transition: all 0.05s ease;
+    inset 1.5px 1.5px 0px var(--retro-border-dark),
+    inset -1.5px -1.5px 0px var(--retro-border-light);
+  border: 1px solid var(--retro-border-black);
 }
+
+/* Refined Taskbar / Topbar */
+.pixel-bar {
+  background: var(--retro-blue);
+  color: white;
+  padding: 2px 4px;
+}
+
+/* Polished Button Look */
+.pixel-btn {
+  background-color: var(--retro-bg);
+  box-shadow: 
+    inset 1.5px 1.5px 0px var(--retro-border-light),
+    inset -1.5px -1.5px 0px var(--retro-border-dark),
+    1px 1px 0px var(--retro-border-black);
+  border: 1px solid var(--retro-border-black);
+  padding: 2px 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: transform 0.05s;
+}
+
 .pixel-btn:active {
   box-shadow: 
-    inset -2px -2px #ffffff,
-    inset 2px 2px #0a0a0a,
-    inset -3px -3px #dfdfdf,
-    inset 3px 3px #404040;
-  transform: translateY(1px);
+    inset 1.5px 1.5px 0px var(--retro-border-dark),
+    inset -1.5px -1.5px 0px var(--retro-border-light),
+    0px 0px 0px var(--retro-border-black);
+  transform: translate(1px, 1px);
+}
+
+/* Desktop Icon Hover */
+.icon-container {
+  border: 1px solid transparent;
+  padding: 4px;
+  transition: all 0.1s;
+}
+
+.icon-container:hover {
+  background-color: rgba(0, 0, 128, 0.3);
+  border: 1px dashed rgba(255, 255, 255, 0.5);
+}
+
+.icon-container.active {
+  background-color: rgba(0, 0, 128, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.8);
 }
 
 .cursor-pixel {
-  cursor: crosshair;
+  cursor: url('https://raw.githubusercontent.com/rust-lang/rust-www/master/static/images/cursor.png'), crosshair;
 }
 
-/* Beautiful custom retro scrollbars */
+/* Custom retro scrollbars */
 ::-webkit-scrollbar {
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
 }
 
 ::-webkit-scrollbar-track {
-  background-image: repeating-linear-gradient(45deg, #c0c0c0 25%, transparent 25%, transparent 75%, #c0c0c0 75%, #c0c0c0), repeating-linear-gradient(45deg, #c0c0c0 25%, #ffffff 25%, #ffffff 75%, #c0c0c0 75%, #c0c0c0);
-  background-position: 0 0, 2px 2px;
+  background-color: #dfdfdf;
+  background-image: 
+    linear-gradient(45deg, #c0c0c0 25%, transparent 25%), 
+    linear-gradient(-45deg, #c0c0c0 25%, transparent 25%), 
+    linear-gradient(45deg, transparent 75%, #c0c0c0 75%), 
+    linear-gradient(-45deg, transparent 75%, #c0c0c0 75%);
   background-size: 4px 4px;
-  border-left: 1px solid #0a0a0a;
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: #c0c0c0;
+  background-color: var(--retro-bg);
   box-shadow: 
-    inset -2px -2px #0a0a0a,
-    inset 2px 2px #ffffff,
-    inset -3px -3px #404040,
-    inset 3px 3px #dfdfdf;
-  border: 1px solid #0a0a0a;
-}
-
-::-webkit-scrollbar-corner {
-  background: #c0c0c0;
-}
+    inset 1.5px 1.5px 0px var(--retro-border-light),
+    inset -1.5px -1.5px 0px var(--retro-border-dark);
+  border: 1px solid var(--retro-border-black);
+}
