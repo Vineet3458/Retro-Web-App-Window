@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
 :root {
   --retro-bg: #c0c0c0;
   --retro-bg-light: #dfdfdf;
@@ -12,93 +14,94 @@
   --retro-text: #000000;
 }
 
+/* ── Base ── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
 body {
-  font-family: 'VT323', monospace;
-  font-size: 1.25rem;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.7rem;
   overflow: hidden;
   user-select: none;
   image-rendering: pixelated;
   background-color: #008080;
 }
 
-/* Retro text highlight */
+/* Text highlight */
 ::selection {
-  background-color: #0000aa;
+  background-color: #000080;
   color: #ffffff;
 }
 
+/* ── Typography ── */
 .font-pixel {
-  font-family: 'Press Start 2P', cursive;
-  font-size: 0.75rem;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.7rem;
   line-height: 1.5;
 }
 
-/* CRITICAL: Professional CRT Glass Effect */
+/* ── CRT Scanlines ── */
 .scanlines {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
   pointer-events: none;
   z-index: 100000;
-  background: 
-    linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%),
-    linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+  background:
+    linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.08) 50%),
+    linear-gradient(90deg, rgba(255,0,0,0.02), rgba(0,255,0,0.01), rgba(0,0,255,0.02));
   background-size: 100% 3px, 3px 100%;
-  animation: flicker 0.12s infinite;
+  animation: flicker 0.15s infinite;
 }
 
-/* Authentic CRT Convex Curve Simulation */
+/* ── CRT Vignette ── */
 .crt-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
   pointer-events: none;
   z-index: 100001;
-  background: radial-gradient(circle, rgba(18,16,16,0) 40%, rgba(0,0,0,0.4) 100%);
-  box-shadow: inset 0 0 100px rgba(0,0,0,0.5);
+  background: radial-gradient(circle, rgba(18,16,16,0) 45%, rgba(0,0,0,0.35) 100%);
+  box-shadow: inset 0 0 80px rgba(0,0,0,0.4);
 }
 
 @keyframes flicker {
-  0% { opacity: 0.98; }
-  5% { opacity: 0.99; }
-  10% { opacity: 0.98; }
-  15% { opacity: 0.99; }
-  20% { opacity: 0.97; }
-  25% { opacity: 0.99; }
-  100% { opacity: 1; }
+  0%   { opacity: 0.97; }
+  25%  { opacity: 0.99; }
+  50%  { opacity: 0.97; }
+  75%  { opacity: 1; }
+  100% { opacity: 0.98; }
 }
 
-/* Desktop Tiled Pattern */
-.desktop-pattern {
-  background-color: #008080;
-  background-image: radial-gradient(#007070 1px, transparent 1px);
-  background-size: 4px 4px;
-}
-
-
-/* Premium Retro Pixel Borders */
+/* ── 3D Pixel Borders (raised / Windows 95 style) ── */
 .pixel-border {
   background-color: var(--retro-bg);
-  box-shadow: 
-    inset 1.5px 1.5px 0px var(--retro-border-light),
-    inset -1.5px -1.5px 0px var(--retro-border-dark),
+  box-shadow:
+    inset 1px 1px 0px var(--retro-border-light),
+    inset -1px -1px 0px var(--retro-border-dark),
     1px 1px 0px var(--retro-border-black);
   border: 1px solid var(--retro-border-black);
 }
 
+/* Sunken / inset border */
 .pixel-border-in {
   background-color: #ffffff;
-  box-shadow: 
-    inset 1.5px 1.5px 0px var(--retro-border-dark),
-    inset -1.5px -1.5px 0px var(--retro-border-light);
+  box-shadow:
+    inset 1px 1px 0px var(--retro-border-dark),
+    inset -1px -1px 0px var(--retro-border-light);
   border: 1px solid var(--retro-border-black);
 }
 
-/* Refined Taskbar / Topbar Gradients */
+/* ── Title bar gradients ── */
 .pixel-bar {
   background: linear-gradient(90deg, var(--retro-blue) 0%, var(--retro-blue-light) 100%);
   color: white;
@@ -111,12 +114,12 @@ body {
   padding: 2px 4px;
 }
 
-/* Polished Button Look */
+/* ── Buttons ── */
 .pixel-btn {
   background-color: var(--retro-bg);
-  box-shadow: 
-    inset 1.5px 1.5px 0px var(--retro-border-light),
-    inset -1.5px -1.5px 0px var(--retro-border-dark),
+  box-shadow:
+    inset 1px 1px 0px var(--retro-border-light),
+    inset -1px -1px 0px var(--retro-border-dark),
     1px 1px 0px var(--retro-border-black);
   border: 1px solid var(--retro-border-black);
   padding: 2px 8px;
@@ -126,60 +129,57 @@ body {
   gap: 4px;
   cursor: pointer;
   transition: transform 0.05s;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.65rem;
 }
 
-.pixel-btn:active, .pixel-btn-pressed {
-  box-shadow: 
-    inset 1.5px 1.5px 0px var(--retro-border-dark),
-    inset -1.5px -1.5px 0px var(--retro-border-light),
+.pixel-btn:active {
+  box-shadow:
+    inset 1px 1px 0px var(--retro-border-dark),
+    inset -1px -1px 0px var(--retro-border-light),
     0px 0px 0px var(--retro-border-black);
   transform: translate(1px, 1px);
 }
 
-/* Authentic Shadow */
+/* ── Window shadow ── */
 .pixel-shadow {
-  box-shadow: 4px 4px 0px rgba(0,0,0,0.6);
+  box-shadow: 3px 3px 0px rgba(0,0,0,0.5);
 }
 
+/* ── Snap-in animation ── */
 @keyframes snap-in {
-  from { transform: scale(0.95); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
+  from { transform: scale(0.97); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
 }
 
 .animate-snap {
   animation: snap-in 0.1s ease-out forwards;
 }
- pocket-button {
-   image-rendering: auto;
- }
 
-/* Desktop Icon Hover */
+/* ── Desktop Icons ── */
 .icon-container {
   border: 1px solid transparent;
-  padding: 4px;
-  transition: all 0.1s;
+  padding: 2px;
+  transition: background-color 0.08s, border-color 0.08s;
+  border-radius: 0;
 }
 
 .icon-container:hover {
-  background-color: rgba(0, 0, 128, 0.3);
-  border: 1px dashed rgba(255, 255, 255, 0.5);
+  background-color: rgba(0, 0, 128, 0.2);
+  border: 1px dashed rgba(255, 255, 255, 0.6);
 }
 
 .icon-container.active {
-  background-color: rgba(0, 0, 128, 0.4);
+  background-color: rgba(0, 0, 128, 0.35);
+  border: 1px dashed rgba(255, 255, 255, 0.8);
 }
 
-.icon-container.active span {
-  background-color: #000080;
-  box-shadow: 0 0 0 1px #808080;
-}
-
-
+/* ── Pixel cursor ── */
 .cursor-pixel {
-  cursor: url('https://raw.githubusercontent.com/rust-lang/rust-www/master/static/images/cursor.png'), crosshair;
+  cursor: default;
 }
 
-/* Custom retro scrollbars */
+/* ── Custom retro scrollbars ── */
 ::-webkit-scrollbar {
   width: 16px;
   height: 16px;
@@ -187,18 +187,28 @@ body {
 
 ::-webkit-scrollbar-track {
   background-color: #dfdfdf;
-  background-image: 
-    linear-gradient(45deg, #c0c0c0 25%, transparent 25%), 
-    linear-gradient(-45deg, #c0c0c0 25%, transparent 25%), 
-    linear-gradient(45deg, transparent 75%, #c0c0c0 75%), 
+  background-image:
+    linear-gradient(45deg, #c0c0c0 25%, transparent 25%),
+    linear-gradient(-45deg, #c0c0c0 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #c0c0c0 75%),
     linear-gradient(-45deg, transparent 75%, #c0c0c0 75%);
   background-size: 4px 4px;
 }
 
 ::-webkit-scrollbar-thumb {
   background-color: var(--retro-bg);
-  box-shadow: 
-    inset 1.5px 1.5px 0px var(--retro-border-light),
-    inset -1.5px -1.5px 0px var(--retro-border-dark);
+  box-shadow:
+    inset 1px 1px 0px var(--retro-border-light),
+    inset -1px -1px 0px var(--retro-border-dark);
   border: 1px solid var(--retro-border-black);
-}
+}
+
+::-webkit-scrollbar-button {
+  background-color: var(--retro-bg);
+  box-shadow:
+    inset 1px 1px 0px var(--retro-border-light),
+    inset -1px -1px 0px var(--retro-border-dark);
+  border: 1px solid var(--retro-border-black);
+  display: block;
+  height: 16px;
+}

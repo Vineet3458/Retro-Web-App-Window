@@ -1,35 +1,34 @@
-import React, { useState } from "react";
+import React from "react";
 
-const Icon = ({ src, IconComponent, label, onDoubleClick, isSelected, onClick }) => {
+const Icon = ({ emoji, label, onDoubleClick, isSelected, onClick }) => {
+  // Shorten long labels for display
+  const shortLabel = label.length > 12 ? label.slice(0, 11) + "…" : label;
+
   return (
     <div
       onClick={onClick}
       onDoubleClick={onDoubleClick}
-      className={`icon-container cursor-pixel flex flex-col items-center justify-center w-20 h-24 select-none ${isSelected ? 'active' : ''}`}
+      className={`icon-container cursor-pixel flex flex-col items-center justify-start w-[72px] h-[66px] select-none ${isSelected ? "active" : ""}`}
       title={label}
     >
-      <div className="w-12 h-12 flex items-center justify-center mb-1 relative pointer-events-none">
-        {src ? (
-          <img 
-            src={src} 
-            alt={label} 
-            className={`w-10 h-10 object-contain image-pixelated ${isSelected ? 'brightness-75' : ''}`} 
-            style={{ imageRendering: 'pixelated' }}
-          />
-        ) : IconComponent ? (
-          <div className={`text-white drop-shadow-[2px_2px_0px_rgba(0,0,0,0.5)] ${isSelected ? 'opacity-70' : ''}`}>
-            <IconComponent size={32} strokeWidth={2.5} />
-          </div>
-        ) : (
-          <div className="w-10 h-10 bg-gray-400 pixel-border"></div>
-        )}
+      {/* Emoji icon */}
+      <div
+        className="w-9 h-9 flex items-center justify-center text-[26px] pointer-events-none leading-none mt-1 shrink-0"
+      >
+        {emoji}
       </div>
-      <span className={`text-white text-[9px] font-pixel text-center px-1 leading-tight break-words max-w-full drop-shadow-[1px_1px_0px_rgba(0,0,0,1)] ${isSelected ? 'bg-blue-800' : ''}`}>
-        {label}
+
+      {/* Label — single line, truncated to fit */}
+      <span
+        className={`text-white font-pixel text-center leading-tight mt-0.5 pointer-events-none drop-shadow-[1px_1px_0px_rgba(0,0,0,1)] whitespace-nowrap ${
+          isSelected ? "bg-[#000080] outline outline-1 outline-[#808080] px-0.5" : ""
+        }`}
+        style={{ fontSize: "7px" }}
+      >
+        {shortLabel}
       </span>
     </div>
   );
 };
 
 export default Icon;
-
