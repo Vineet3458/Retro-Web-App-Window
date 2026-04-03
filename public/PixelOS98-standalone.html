@@ -1,0 +1,1317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>PixelOS 98 — Retro Desktop OS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+<style>
+/*
+ * PixelOS 98 — Global Styles
+ * In the Vite+React project this lives in: src/index.css
+ * Tailwind utility classes are replaced here with direct CSS equivalents.
+ * Architecture note: Each CSS block maps to a @layer component in tailwind config.
+ */
+*{box-sizing:border-box;image-rendering:pixelated;cursor:default;margin:0;padding:0}
+body{font-family:'Press Start 2P',monospace;background:#008080;overflow:hidden;height:100vh;width:100vw;user-select:none}
+::-webkit-scrollbar{width:16px}
+::-webkit-scrollbar-track{background:#c0c0c0;border:2px solid #808080}
+::-webkit-scrollbar-thumb{background:#c0c0c0;border-top:2px solid #fff;border-left:2px solid #fff;border-bottom:2px solid #808080;border-right:2px solid #808080}
+
+/* === PIXEL BORDER UTILITIES === */
+.pbo{border-top:2px solid #fff;border-left:2px solid #fff;border-bottom:2px solid #808080;border-right:2px solid #808080} /* pixel-border-out */
+.pbi{border-top:2px solid #808080;border-left:2px solid #808080;border-bottom:2px solid #fff;border-right:2px solid #fff} /* pixel-border-in  */
+
+/* === PIXEL BUTTON === */
+.pbtn{background:#c0c0c0;border-top:2px solid #fff;border-left:2px solid #fff;border-bottom:2px solid #808080;border-right:2px solid #808080;padding:4px 10px;cursor:pointer;font-family:'Press Start 2P',monospace;font-size:8px;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center;gap:4px}
+.pbtn:active,.pbtn.pressed{border-top:2px solid #808080;border-left:2px solid #808080;border-bottom:2px solid #fff;border-right:2px solid #fff;padding-top:5px;padding-left:11px;padding-bottom:3px;padding-right:9px}
+.pbtn:disabled{color:#808080;text-shadow:1px 1px 0 #fff;cursor:not-allowed}
+
+/* === WINDOW CHROME === */
+.wchrome{background:#c0c0c0;border-top:2px solid #fff;border-left:2px solid #fff;border-bottom:2px solid #000;border-right:2px solid #000;box-shadow:1px 1px 0 #808080;position:fixed;display:flex;flex-direction:column}
+.titlebar{background:linear-gradient(90deg,#000080,#1084d0);color:#fff;font-family:'Press Start 2P',monospace;font-size:8px;padding:3px 4px;display:flex;align-items:center;gap:4px;cursor:move;flex-shrink:0}
+.titlebar.inactive{background:linear-gradient(90deg,#808080,#a0a0a0)}
+.tbtn{width:16px;height:14px;background:#c0c0c0;border-top:1px solid #fff;border-left:1px solid #fff;border-bottom:1px solid #000;border-right:1px solid #000;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:9px;flex-shrink:0;line-height:1}
+.tbtn:active{border-color:#000 #fff #fff #000}
+.wcontent{flex:1;overflow:hidden;position:relative}
+.resize-handle{position:absolute;bottom:0;right:0;width:16px;height:16px;cursor:se-resize;z-index:10;background:repeating-conic-gradient(#808080 0 25%,transparent 0 50%) 0 0/4px 4px}
+
+/* === TASKBAR === */
+.taskbar{background:#c0c0c0;border-top:2px solid #fff;height:36px;display:flex;align-items:center;padding:2px 4px;gap:4px;position:fixed;bottom:0;left:0;right:0;z-index:1000}
+.startbtn{background:#c0c0c0;border-top:2px solid #fff;border-left:2px solid #fff;border-bottom:2px solid #000;border-right:2px solid #000;padding:2px 8px;font-family:'Press Start 2P',monospace;font-size:10px;font-weight:bold;cursor:pointer;display:flex;align-items:center;gap:5px;height:28px}
+.startbtn.active,.startbtn:active{border-top:2px solid #000;border-left:2px solid #000;border-bottom:2px solid #fff;border-right:2px solid #fff}
+.tbitem{background:#c0c0c0;border-top:2px solid #fff;border-left:2px solid #fff;border-bottom:2px solid #808080;border-right:2px solid #808080;padding:2px 8px;font-family:'Press Start 2P',monospace;font-size:7px;cursor:pointer;height:26px;display:flex;align-items:center;gap:4px;max-width:150px;overflow:hidden;white-space:nowrap}
+.tbitem.active{border-top:2px solid #808080;border-left:2px solid #808080;border-bottom:2px solid #fff;border-right:2px solid #fff;background:#b0b0b0}
+
+/* === DESKTOP ICONS === */
+.dicon{display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px;cursor:pointer;width:80px;text-align:center}
+.iclabel{font-family:'Press Start 2P',monospace;font-size:7px;color:#fff;text-shadow:1px 1px 0 #000;padding:1px 2px;line-height:1.5;word-break:break-word;text-align:center}
+.dicon:hover .iclabel,.dicon.sel .iclabel{background:#000080;color:#fff}
+.dicon.sel .diconemoji{filter:brightness(0.7) sepia(1) hue-rotate(200deg)}
+
+/* === MENUS === */
+.menubar{background:#c0c0c0;display:flex;border-bottom:1px solid #808080;flex-shrink:0}
+.mitem{font-family:'Press Start 2P',monospace;font-size:8px;padding:3px 8px;cursor:pointer}
+.mitem:hover,.mitem.active{background:#000080;color:#fff}
+.ddmenu{position:absolute;background:#c0c0c0;border-top:2px solid #fff;border-left:2px solid #fff;border-bottom:2px solid #000;border-right:2px solid #000;z-index:9999;min-width:160px}
+.dditem{font-family:'Press Start 2P',monospace;font-size:8px;padding:6px 12px;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:8px}
+.dditem:hover{background:#000080;color:#fff}
+.ddivider{height:0;border-top:1px solid #808080;border-bottom:1px solid #fff;margin:2px 4px}
+
+/* === INPUTS === */
+.pinput{background:#fff;border-top:2px solid #808080;border-left:2px solid #808080;border-bottom:2px solid #fff;border-right:2px solid #fff;font-family:'Press Start 2P',monospace;font-size:8px;padding:4px;outline:none;width:100%}
+.pselect{background:#fff;border-top:2px solid #808080;border-left:2px solid #808080;border-bottom:2px solid #fff;border-right:2px solid #fff;font-family:'Press Start 2P',monospace;font-size:8px;padding:3px;outline:none}
+
+/* === PROGRESS === */
+.pprog{background:#fff;border-top:2px solid #808080;border-left:2px solid #808080;border-bottom:2px solid #fff;border-right:2px solid #fff;height:20px;overflow:hidden;position:relative}
+.pprogbar{background:repeating-linear-gradient(90deg,#000080,#000080 8px,#1084d0 8px,#1084d0 16px);height:100%;transition:width 0.2s}
+
+/* === EFFECTS === */
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+.blink{animation:blink 1s infinite}
+@keyframes flicker{0%,100%{opacity:1}93%{opacity:.85}94%{opacity:1}}
+.crt{animation:flicker 8s infinite}
+.scanlines::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.06) 2px,rgba(0,0,0,.06) 4px);pointer-events:none;z-index:1}
+
+/* === DESKTOP PATTERN === */
+.dpattern{background-color:#008080;background-image:repeating-linear-gradient(0deg,transparent,transparent 8px,rgba(0,0,0,.04) 8px,rgba(0,0,0,.04) 9px),repeating-linear-gradient(90deg,transparent,transparent 8px,rgba(0,0,0,.04) 8px,rgba(0,0,0,.04) 9px)}
+
+/* === MISC LAYOUT UTILS === */
+.flex{display:flex}.flex-col{flex-direction:column}.items-center{align-items:center}.justify-center{justify-content:center}
+.flex-1{flex:1}.overflow-auto{overflow:auto}.overflow-hidden{overflow:hidden}.relative{position:relative}.absolute{position:absolute}
+.inset-0{top:0;left:0;right:0;bottom:0}.w-full{width:100%}.h-full{height:100%}.gap-1{gap:4px}.gap-2{gap:8px}.gap-3{gap:12px}.gap-4{gap:16px}
+.p-1{padding:4px}.p-2{padding:8px}.p-3{padding:12px}.p-4{padding:16px}.px-2{padding-left:8px;padding-right:8px}.py-1{padding-top:4px;padding-bottom:4px}
+.mt-1{margin-top:4px}.mt-2{margin-top:8px}.mb-1{margin-bottom:4px}.mb-2{margin-bottom:8px}.ml-auto{margin-left:auto}
+.text-center{text-align:center}.text-right{text-align:right}.truncate{overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.wrap{flex-wrap:wrap}
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+/*
+ * PixelOS 98 — Main Application
+ * ====================================
+ * Project Structure (mirrors Vite+React setup):
+ *
+ *   src/
+ *   ├── main.jsx              → ReactDOM.createRoot entry
+ *   ├── App.jsx               → OS shell: boot screen, window manager, taskbar
+ *   ├── index.css             → Global pixel styles (Tailwind layers)
+ *   ├── hooks/
+ *   │   └── useWindowManager.js  → Window state: open/close/drag/resize/z-index
+ *   └── apps/
+ *       ├── About.jsx
+ *       ├── Notepad.jsx
+ *       ├── Paint.jsx
+ *       ├── Terminal.jsx
+ *       ├── Minesweeper.jsx
+ *       ├── MediaPlayer.jsx
+ *       ├── FileExplorer.jsx
+ *       ├── Calculator.jsx
+ *       ├── Settings.jsx
+ *       └── Portfolio.jsx
+ *
+ * Tech: React 18 · Vite 5 · Tailwind CSS 3 · Press Start 2P font
+ */
+
+const { useState, useEffect, useRef, useCallback, useMemo } = React;
+
+/* ──────────────────────────────────────────────────────────────
+ * CONSTANTS — src/hooks/useWindowManager.js
+ * ────────────────────────────────────────────────────────────── */
+const APPS = {
+  ABOUT:'about', NOTEPAD:'notepad', PAINT:'paint', TERMINAL:'terminal',
+  MINESWEEPER:'minesweeper', MEDIA_PLAYER:'media_player',
+  FILE_EXPLORER:'file_explorer', CALCULATOR:'calculator',
+  SETTINGS:'settings', PORTFOLIO:'portfolio',
+};
+
+const APP_META = {
+  [APPS.ABOUT]:        { title:'About PixelOS',   icon:'ℹ️',  w:500, h:380, x:80,  y:60  },
+  [APPS.NOTEPAD]:      { title:'Notepad',          icon:'📝',  w:520, h:400, x:120, y:80  },
+  [APPS.PAINT]:        { title:'MS Paint',         icon:'🎨',  w:620, h:460, x:100, y:60  },
+  [APPS.TERMINAL]:     { title:'Terminal',         icon:'⬛',  w:560, h:380, x:140, y:100 },
+  [APPS.MINESWEEPER]:  { title:'Minesweeper',      icon:'💣',  w:310, h:390, x:200, y:80  },
+  [APPS.MEDIA_PLAYER]: { title:'Media Player',     icon:'▶️',  w:420, h:400, x:160, y:80  },
+  [APPS.FILE_EXPLORER]:{ title:'File Explorer',    icon:'📁',  w:580, h:440, x:110, y:70  },
+  [APPS.CALCULATOR]:   { title:'Calculator',       icon:'🔢',  w:360, h:400, x:240, y:80  },
+  [APPS.SETTINGS]:     { title:'Display Settings', icon:'⚙️',  w:460, h:440, x:130, y:80  },
+  [APPS.PORTFOLIO]:    { title:'My Portfolio',     icon:'👤',  w:600, h:500, x:90,  y:50  },
+};
+
+/* ──────────────────────────────────────────────────────────────
+ * HOOK: useWindowManager — src/hooks/useWindowManager.js
+ * Manages all open windows: position, size, focus, min/max
+ * ────────────────────────────────────────────────────────────── */
+let _wid = 0;
+function useWindowManager() {
+  const [wins, setWins] = useState([]);
+  const [topZ, setTopZ] = useState(10);
+
+  const bumpZ = useCallback(() => {
+    const z = topZ + 1; setTopZ(z); return z;
+  }, [topZ]);
+
+  const open = useCallback((appId) => {
+    setWins(prev => {
+      const ex = prev.find(w => w.appId === appId);
+      if (ex) {
+        const z = topZ + 1; setTopZ(z);
+        return prev.map(w => w.appId === appId ? {...w, zIndex:z, minimized:false} : w);
+      }
+      const m = APP_META[appId];
+      const z = topZ + 1; setTopZ(z);
+      const spread = prev.length * 22;
+      return [...prev, {
+        id: ++_wid, appId,
+        x: Math.min(m.x + spread, window.innerWidth - m.w - 20),
+        y: Math.min(m.y + spread, window.innerHeight - m.h - 50),
+        w: m.w, h: m.h, zIndex: z,
+        minimized: false, maximized: false, prevBounds: null,
+      }];
+    });
+  }, [topZ]);
+
+  const close   = useCallback((id) => setWins(p => p.filter(w => w.id !== id)), []);
+  const focus   = useCallback((id) => { const z = topZ+1; setTopZ(z); setWins(p => p.map(w => w.id===id?{...w,zIndex:z}:w)); }, [topZ]);
+  const minimize= useCallback((id) => setWins(p => p.map(w => w.id===id?{...w,minimized:!w.minimized}:w)), []);
+  const maximize= useCallback((id) => setWins(p => p.map(w => {
+    if(w.id!==id)return w;
+    if(w.maximized)return{...w,maximized:false,...(w.prevBounds||{}),prevBounds:null};
+    return{...w,maximized:true,prevBounds:{x:w.x,y:w.y,w:w.w,h:w.h},x:0,y:0,w:window.innerWidth,h:window.innerHeight-36};
+  })), []);
+  const move    = useCallback((id,x,y) => setWins(p => p.map(w => w.id===id?{...w,x,y}:w)), []);
+  const resize  = useCallback((id,nw,nh) => setWins(p => p.map(w => w.id===id?{...w,w:nw,h:nh}:w)), []);
+
+  return { wins, open, close, focus, minimize, maximize, move, resize };
+}
+
+/* ──────────────────────────────────────────────────────────────
+ * COMPONENT: Window — src/components/Window.jsx
+ * Draggable, resizable, focusable window chrome
+ * ────────────────────────────────────────────────────────────── */
+function OsWindow({ win, isActive, onClose, onFocus, onMin, onMax, onMove, onResize, children }) {
+  const { id, x, y, w, h, zIndex, minimized, maximized } = win;
+  const meta = APP_META[win.appId] || {};
+
+  // Drag
+  const startDrag = useCallback((e) => {
+    if(maximized || e.button!==0) return;
+    onFocus(id);
+    const ox=e.clientX-x, oy=e.clientY-y;
+    const mm=(e)=>onMove(id,Math.max(0,Math.min(e.clientX-ox,window.innerWidth-w)),Math.max(0,Math.min(e.clientY-oy,window.innerHeight-76)));
+    const mu=()=>{window.removeEventListener('mousemove',mm);window.removeEventListener('mouseup',mu)};
+    window.addEventListener('mousemove',mm); window.addEventListener('mouseup',mu);
+  }, [id,x,y,w,maximized,onFocus,onMove]);
+
+  // Resize
+  const startResize = useCallback((e) => {
+    e.preventDefault(); e.stopPropagation();
+    if(maximized) return;
+    const sx=e.clientX,sy=e.clientY,sw=w,sh=h;
+    const mm=(e)=>onResize(id,Math.max(220,sw+e.clientX-sx),Math.max(160,sh+e.clientY-sy));
+    const mu=()=>{window.removeEventListener('mousemove',mm);window.removeEventListener('mouseup',mu)};
+    window.addEventListener('mousemove',mm); window.addEventListener('mouseup',mu);
+  }, [id,w,h,maximized,onResize]);
+
+  if(minimized) return null;
+
+  return (
+    <div className="wchrome" style={{left:x,top:y,width:w,height:h,zIndex}} onMouseDown={()=>onFocus(id)}>
+      {/* Title bar */}
+      <div className={`titlebar ${isActive?'':'inactive'}`} onMouseDown={startDrag} onDoubleClick={()=>onMax(id)}>
+        <span style={{fontSize:12,flexShrink:0}}>{meta.icon||'🖥️'}</span>
+        <span style={{flex:1,overflow:'hidden',whiteSpace:'nowrap',textOverflow:'ellipsis'}}>{meta.title}</span>
+        <div style={{display:'flex',gap:2,marginLeft:4}} onMouseDown={e=>e.stopPropagation()}>
+          <button className="tbtn" onClick={()=>onMin(id)} title="Minimize">
+            <span style={{width:8,height:1,background:'#000',display:'block',marginTop:4}}/>
+          </button>
+          <button className="tbtn" onClick={()=>onMax(id)} title="Maximize">
+            <span style={{width:8,height:7,border:'1px solid #000',display:'block'}}/>
+          </button>
+          <button className="tbtn" onClick={()=>onClose(id)} title="Close" style={{fontWeight:'bold',fontSize:9}}>✕</button>
+        </div>
+      </div>
+      {/* Content */}
+      <div className="wcontent" style={{background:'#c0c0c0'}}>
+        {children}
+      </div>
+      {/* Resize corner */}
+      {!maximized && <div className="resize-handle" onMouseDown={startResize}/>}
+    </div>
+  );
+}
+
+/* ──────────────────────────────────────────────────────────────
+ * COMPONENT: Taskbar — src/components/Taskbar.jsx
+ * ────────────────────────────────────────────────────────────── */
+const START_ITEMS = [
+  {label:'My Portfolio',  appId:APPS.PORTFOLIO,    icon:'👤'},
+  {label:'File Explorer', appId:APPS.FILE_EXPLORER, icon:'📁'},
+  {label:'Notepad',       appId:APPS.NOTEPAD,       icon:'📝'},
+  {label:'MS Paint',      appId:APPS.PAINT,         icon:'🎨'},
+  {label:'Terminal',      appId:APPS.TERMINAL,      icon:'⬛'},
+  {label:'Minesweeper',   appId:APPS.MINESWEEPER,   icon:'💣'},
+  {label:'Media Player',  appId:APPS.MEDIA_PLAYER,  icon:'▶️'},
+  {label:'Calculator',    appId:APPS.CALCULATOR,    icon:'🔢'},
+  {label:'Settings',      appId:APPS.SETTINGS,      icon:'⚙️'},
+  {div:true},
+  {label:'About PixelOS', appId:APPS.ABOUT,         icon:'ℹ️'},
+];
+
+function Clock() {
+  const [t,setT]=useState(new Date());
+  useEffect(()=>{const i=setInterval(()=>setT(new Date()),1000);return()=>clearInterval(i)},[]);
+  const p=n=>String(n).padStart(2,'0');
+  const h=t.getHours(),am=h>=12?'PM':'AM',h12=h%12||12;
+  return <div className="pbi" style={{padding:'2px 8px',display:'flex',alignItems:'center'}}><span style={{fontFamily:"'Press Start 2P'",fontSize:8}}>{p(h12)}:{p(t.getMinutes())} {am}</span></div>;
+}
+
+function Taskbar({ wins, activeId, onOpen, onFocus, onMinimize }) {
+  const [startOpen,setStartOpen]=useState(false);
+  const ref=useRef(null);
+  useEffect(()=>{
+    const h=(e)=>{if(ref.current&&!ref.current.contains(e.target))setStartOpen(false)};
+    document.addEventListener('mousedown',h); return()=>document.removeEventListener('mousedown',h);
+  },[]);
+
+  return (
+    <div className="taskbar">
+      {/* Start button + menu */}
+      <div ref={ref} style={{position:'relative',flexShrink:0}}>
+        <button className={`startbtn${startOpen?' active':''}`} onClick={()=>setStartOpen(v=>!v)}>
+          <span style={{fontSize:16}}>🪟</span>
+          <span style={{fontFamily:"'Press Start 2P'",fontWeight:'bold',fontSize:11}}>Start</span>
+        </button>
+        {startOpen && (
+          <div className="ddmenu" style={{position:'absolute',bottom:'100%',left:0,width:220,zIndex:9999}}>
+            {/* Header */}
+            <div style={{background:'linear-gradient(180deg,#000080,#1084d0)',padding:'8px 12px',display:'flex',alignItems:'flex-end',gap:8,minHeight:56}}>
+              <span style={{fontSize:28}}>🪟</span>
+              <div>
+                <div style={{fontFamily:"'Press Start 2P'",fontSize:9,color:'#fff'}}>PixelOS 98</div>
+                <div style={{fontFamily:"'Press Start 2P'",fontSize:7,color:'#aaaaff'}}>v1.0.0</div>
+              </div>
+            </div>
+            {START_ITEMS.map((it,i)=>it.div
+              ? <div key={i} className="ddivider"/>
+              : <div key={i} className="dditem" onClick={()=>{setStartOpen(false);onOpen(it.appId)}}>
+                  <span style={{width:20,textAlign:'center'}}>{it.icon}</span>{it.label}
+                </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Separator */}
+      <div className="pbi" style={{width:2,alignSelf:'stretch',margin:'2px 4px'}}/>
+
+      {/* Window buttons */}
+      <div style={{display:'flex',gap:4,flex:1,overflowX:'auto'}}>
+        {wins.map(w=>(
+          <button key={w.id} className={`tbitem${activeId===w.id&&!w.minimized?' active':''}`}
+            onClick={()=>{
+              if(activeId===w.id&&!w.minimized){onMinimize(w.id)}
+              else{onFocus(w.id);if(w.minimized)onMinimize(w.id)}
+            }}>
+            <span>{APP_META[w.appId]?.icon||'🖥️'}</span>
+            <span style={{overflow:'hidden',textOverflow:'ellipsis'}}>{APP_META[w.appId]?.title||'App'}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* System tray */}
+      <div className="pbi" style={{display:'flex',alignItems:'center',gap:6,padding:'2px 8px',height:28}}>
+        <span style={{fontSize:14}}>🔊</span>
+        <span style={{fontSize:14}}>📶</span>
+        <Clock/>
+      </div>
+    </div>
+  );
+}
+
+/* ──────────────────────────────────────────────────────────────
+ * COMPONENT: Desktop — src/components/Desktop.jsx
+ * ────────────────────────────────────────────────────────────── */
+const DESKTOP_ICONS = [
+  {id:APPS.PORTFOLIO,    label:'My\nPortfolio',   icon:'🧑‍💻'},
+  {id:APPS.FILE_EXPLORER,label:'File\nExplorer',  icon:'📂'},
+  {id:APPS.NOTEPAD,      label:'Notepad',          icon:'📄'},
+  {id:APPS.PAINT,        label:'MS Paint',         icon:'🖌️'},
+  {id:APPS.TERMINAL,     label:'Terminal',         icon:'💻'},
+  {id:APPS.MINESWEEPER,  label:'Mine\nSweeper',    icon:'💣'},
+  {id:APPS.MEDIA_PLAYER, label:'Media\nPlayer',    icon:'🎵'},
+  {id:APPS.CALCULATOR,   label:'Calculator',       icon:'🧮'},
+  {id:APPS.SETTINGS,     label:'Settings',         icon:'⚙️'},
+  {id:APPS.ABOUT,        label:'About\nPixelOS',   icon:'ℹ️'},
+];
+
+function Desktop({ onOpen, wallpaper }) {
+  const [sel,setSel]=useState(null);
+  return (
+    <div className="dpattern" style={{position:'absolute',inset:0,paddingBottom:36,background:wallpaper||'#008080'}}
+      onClick={()=>setSel(null)}>
+      <div style={{display:'flex',flexDirection:'column',gap:6,padding:8,width:88}}>
+        {DESKTOP_ICONS.map(ic=>(
+          <div key={ic.id} className={`dicon${sel===ic.id?' sel':''}`}
+            onClick={e=>{e.stopPropagation();setSel(ic.id)}}
+            onDoubleClick={e=>{e.stopPropagation();onOpen(ic.id);setSel(null)}}>
+            <span className={sel===ic.id?'diconemoji':''} style={{fontSize:32,display:'block',lineHeight:1,filter:sel===ic.id?'brightness(0.6)':''}}>{ic.icon}</span>
+            <span className="iclabel" style={{whiteSpace:'pre-wrap'}}>{ic.label}</span>
+          </div>
+        ))}
+      </div>
+      <div style={{position:'absolute',bottom:44,right:8,textAlign:'right',opacity:.25,color:'#fff',fontFamily:"'Press Start 2P'",fontSize:7,lineHeight:2}}>
+        <div>PixelOS 98</div><div>BTech Final Year</div><div>Project 2025</div>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════
+ * APP COMPONENTS — src/apps/
+ * ══════════════════════════════════════════════════════════════ */
+
+/* ── About ── */
+function About() {
+  const [prog,setProg]=useState(0);
+  useEffect(()=>{const t=setInterval(()=>setProg(p=>{if(p>=100){clearInterval(t);return 100}return p+2}),50);return()=>clearInterval(t)},[]);
+  const phases=['Loading kernel...','Initializing UI...','Mounting filesystem...','Welcome!'];
+  const ph=Math.min(Math.floor(prog/26),3);
+  return (
+    <div style={{height:'100%',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',background:'#000080',padding:24,gap:16}}>
+      <div style={{textAlign:'center'}}>
+        <div style={{fontSize:52,marginBottom:8}}>🪟</div>
+        <div style={{fontFamily:"'Press Start 2P'",fontSize:18,color:'#fff'}}>PixelOS 98</div>
+        <div style={{fontFamily:"'Press Start 2P'",fontSize:8,color:'#8888ff',marginTop:6}}>A Retro Desktop Experience</div>
+      </div>
+      <div style={{width:'85%',height:1,background:'rgba(255,255,255,.2)'}}/>
+      <div className="grid2" style={{width:'90%'}}>
+        {[['🖥️','Window Manager','Drag · Resize · Multi-window'],['🎨','MS Paint','Canvas drawing app'],
+          ['⬛','Terminal','Shell with 15+ commands'],['💣','Minesweeper','Classic game'],
+          ['📁','File Explorer','Tree-based FS navigation'],['🎵','Media Player','Playlist + visualizer'],
+          ['🔢','Calculator','Scientific calculator'],['📝','Notepad','Rich text editor'],
+        ].map(([ic,t,d])=>(
+          <div key={t} style={{display:'flex',gap:8,padding:8,background:'rgba(255,255,255,.05)',border:'1px solid rgba(255,255,255,.1)'}}>
+            <span style={{fontSize:18,flexShrink:0}}>{ic}</span>
+            <div><div style={{fontFamily:"'Press Start 2P'",fontSize:7,color:'#fff'}}>{t}</div>
+              <div style={{fontFamily:"'VT323'",fontSize:14,color:'#aaaaff'}}>{d}</div></div>
+          </div>
+        ))}
+      </div>
+      <div style={{width:'90%'}}>
+        <div style={{fontFamily:"'Press Start 2P'",fontSize:7,color:'#aaaaff',marginBottom:4}}>{phases[ph]} {prog}%</div>
+        <div className="pprog"><div className="pprogbar" style={{width:prog+'%'}}/></div>
+      </div>
+      <div style={{fontFamily:"'Press Start 2P'",fontSize:7,color:'#555'}}>Built with React · Vite · Tailwind CSS · BTech 2025</div>
+    </div>
+  );
+}
+
+/* ── Notepad ── */
+function Notepad() {
+  const [text,setText]=useState(`Welcome to PixelOS Notepad!\n================================\nThis is a retro-styled text editor.\n\nFeatures:\n- Type anything you want\n- Word wrap toggle\n- Live word & char count\n\nBuilt with Vite + React + Tailwind CSS\nBTech Final Year Project — 2025\n\nHave fun typing! ✏️`);
+  const [wrap,setWrap]=useState(true);
+  const words=text.trim().split(/\s+/).filter(Boolean).length;
+  return (
+    <div style={{display:'flex',flexDirection:'column',height:'100%'}}>
+      <div className="menubar">
+        <div className="mitem">File</div>
+        <div className="mitem" onClick={()=>setText('')}>Edit</div>
+        <div className="mitem" onClick={()=>setWrap(w=>!w)}>Format {wrap?'(Wrap)':'(No Wrap)'}</div>
+        <div className="mitem">Help</div>
+        <button className="pbtn" style={{marginLeft:'auto',marginRight:4,fontSize:7}} onClick={()=>setText('')}>Clear</button>
+      </div>
+      <textarea value={text} onChange={e=>setText(e.target.value)}
+        style={{flex:1,resize:'none',outline:'none',padding:8,background:'#fff',fontFamily:"'VT323',monospace",fontSize:18,
+          border:'none',borderTop:'2px solid #808080',borderLeft:'2px solid #808080',borderBottom:'2px solid #fff',borderRight:'2px solid #fff',
+          margin:4,whiteSpace:wrap?'pre-wrap':'pre',overflowX:wrap?'hidden':'auto',lineHeight:1.5}}
+        spellCheck={false}/>
+      <div className="pbi" style={{margin:'0 4px 4px',padding:'2px 8px',display:'flex',gap:16}}>
+        {[`Ln ${text.split('\n').length}`,`Words: ${words}`,`Chars: ${text.length}`].map(s=>(
+          <span key={s} style={{fontFamily:"'Press Start 2P'",fontSize:7}}>{s}</span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ── MS Paint ── */
+const PALETTE=['#000000','#808080','#800000','#808000','#008000','#008080','#000080','#800080',
+               '#ffffff','#c0c0c0','#ff0000','#ffff00','#00ff00','#00ffff','#0000ff','#ff00ff',
+               '#ff8040','#804000','#80ff00','#004040','#0080ff','#ff8080','#ff0080','#8000ff'];
+const PT_TOOLS=[{id:'pencil',l:'✏️'},{id:'brush',l:'🖌️'},{id:'eraser',l:'⬜'},{id:'fill',l:'🪣'},
+                {id:'line',l:'╲'},{id:'rect',l:'▭'},{id:'circle',l:'◯'}];
+
+function Paint() {
+  const cvs=useRef(null);
+  const [tool,setTool]=useState('pencil');
+  const [fg,setFg]=useState('#000000');
+  const [sz,setSz]=useState(2);
+  const [drawing,setDrawing]=useState(false);
+  const [start,setStart]=useState(null);
+  const [snap,setSnap]=useState(null);
+
+  useEffect(()=>{
+    const c=cvs.current, ctx=c.getContext('2d');
+    ctx.fillStyle='#fff'; ctx.fillRect(0,0,c.width,c.height);
+  },[]);
+
+  const pos=e=>{const r=cvs.current.getBoundingClientRect();return{x:Math.round(e.clientX-r.left),y:Math.round(e.clientY-r.top)}};
+  const ctx=()=>cvs.current.getContext('2d');
+
+  const down=e=>{
+    const p=pos(e); setDrawing(true); setStart(p);
+    const c=ctx();
+    if(tool==='pencil'||tool==='brush'){
+      c.globalCompositeOperation='source-over';c.strokeStyle=fg;
+      c.lineWidth=tool==='brush'?sz*3:sz;c.lineCap='round';c.beginPath();c.moveTo(p.x,p.y);
+    } else if(tool==='eraser'){
+      c.globalCompositeOperation='destination-out';c.lineWidth=sz*5;c.lineCap='round';c.beginPath();c.moveTo(p.x,p.y);
+    } else if(tool==='fill'){
+      fill(p.x,p.y,fg); setDrawing(false);
+    } else {
+      // shape tools: save snapshot
+      const img=c.getImageData(0,0,cvs.current.width,cvs.current.height);
+      setSnap(img);
+    }
+  };
+
+  const move=e=>{
+    if(!drawing)return;
+    const p=pos(e), c=ctx();
+    if(tool==='pencil'||tool==='brush'||tool==='eraser'){c.lineTo(p.x,p.y);c.stroke();}
+    else if(start&&snap){
+      c.putImageData(snap,0,0);
+      c.globalCompositeOperation='source-over';c.strokeStyle=fg;c.lineWidth=sz;c.lineCap='round';
+      c.beginPath();
+      if(tool==='line'){c.moveTo(start.x,start.y);c.lineTo(p.x,p.y);c.stroke();}
+      else if(tool==='rect'){c.strokeRect(start.x,start.y,p.x-start.x,p.y-start.y);}
+      else if(tool==='circle'){
+        const rx=Math.abs(p.x-start.x)/2,ry=Math.abs(p.y-start.y)/2;
+        c.ellipse(Math.min(start.x,p.x)+rx,Math.min(start.y,p.y)+ry,rx||1,ry||1,0,0,2*Math.PI);c.stroke();
+      }
+    }
+  };
+
+  const up=e=>{setDrawing(false);setStart(null);setSnap(null);ctx().beginPath();};
+
+  function fill(sx,sy,color){
+    const c=cvs.current,ctx2=c.getContext('2d');
+    const d=ctx2.getImageData(0,0,c.width,c.height),px=d.data;
+    const idx=(x,y)=>(y*c.width+x)*4;
+    const t=Array.from(px.slice(idx(sx,sy),idx(sx,sy)+4));
+    const f=[parseInt(color.slice(1,3),16),parseInt(color.slice(3,5),16),parseInt(color.slice(5,7),16),255];
+    if(t.every((v,i)=>v===f[i]))return;
+    const stk=[[sx,sy]];
+    while(stk.length){
+      const[x,y]=stk.pop();
+      if(x<0||x>=c.width||y<0||y>=c.height)continue;
+      const i=idx(x,y);
+      if(!Array.from(px.slice(i,i+4)).every((v,j)=>v===t[j]))continue;
+      px[i]=f[0];px[i+1]=f[1];px[i+2]=f[2];px[i+3]=f[3];
+      stk.push([x+1,y],[x-1,y],[x,y+1],[x,y-1]);
+    }
+    ctx2.putImageData(d,0,0);
+  }
+
+  const clear=()=>{const c=ctx();c.fillStyle='#fff';c.fillRect(0,0,cvs.current.width,cvs.current.height)};
+
+  return (
+    <div style={{display:'flex',flexDirection:'column',height:'100%'}}>
+      <div className="menubar">
+        <div className="mitem">File</div><div className="mitem">Edit</div>
+        <div className="mitem">Image</div><div className="mitem">Colors</div>
+        <button className="pbtn" style={{marginLeft:'auto',marginRight:4,fontSize:7}} onClick={clear}>Clear</button>
+      </div>
+      <div style={{display:'flex',flex:1,overflow:'hidden'}}>
+        {/* Toolbar */}
+        <div style={{display:'flex',flexDirection:'column',gap:4,padding:4,width:52,borderRight:'1px solid #808080',flexShrink:0}}>
+          {PT_TOOLS.map(t=>(
+            <button key={t.id} className={`pbtn${tool===t.id?' pressed':''}`}
+              style={{padding:4,fontSize:14,width:'100%'}} onClick={()=>setTool(t.id)} title={t.id}>{t.l}</button>
+          ))}
+          <div style={{marginTop:8,display:'flex',flexDirection:'column',alignItems:'center',gap:6}}>
+            {[1,2,4,7].map(s=>(
+              <div key={s} onClick={()=>setSz(s)} style={{width:s*2+6,height:s*2+6,background:'#000',borderRadius:'50%',cursor:'pointer',
+                outline:sz===s?'2px solid #ffff00':'none'}}/>
+            ))}
+          </div>
+        </div>
+        {/* Canvas */}
+        <div style={{flex:1,overflow:'auto',padding:4,background:'#808080'}}>
+          <div className="pbi" style={{display:'inline-block',cursor:'crosshair'}}>
+            <canvas ref={cvs} width={480} height={340} style={{display:'block',background:'#fff'}}
+              onMouseDown={down} onMouseMove={move} onMouseUp={up} onMouseLeave={up}/>
+          </div>
+        </div>
+      </div>
+      {/* Palette */}
+      <div style={{display:'flex',alignItems:'center',gap:8,padding:4,borderTop:'1px solid #808080'}}>
+        <div className="pbo" style={{width:32,height:32,background:fg,flexShrink:0}}/>
+        <div style={{display:'flex',flexWrap:'wrap',gap:1,maxWidth:200}}>
+          {PALETTE.map(c=>(
+            <div key={c} className="pbo" style={{width:14,height:14,background:c,cursor:'pointer'}} onClick={()=>setFg(c)}/>
+          ))}
+        </div>
+        <span style={{fontFamily:"'Press Start 2P'",fontSize:7,marginLeft:4}}>{fg}</span>
+      </div>
+    </div>
+  );
+}
+
+/* ── Terminal ── */
+const CMDS = {
+  help:()=>`\nAvailable commands:\n  help     about    ls       pwd      whoami\n  date     echo     clear    cat      neofetch\n  matrix   joke     skills   projects contact\n`,
+  about:()=>`\n██████╗ ██╗██╗  ██╗███████╗██╗      ██████╗ ███████╗\n██╔══██╗██║╚██╗██╔╝██╔════╝██║     ██╔═══██╗██╔════╝\n██████╔╝██║ ╚███╔╝ █████╗  ██║     ██║   ██║███████╗\n██╔═══╝ ██║ ██╔██╗ ██╔══╝  ██║     ██║   ██║╚════██║\n██║     ██║██╔╝ ██╗███████╗███████╗╚██████╔╝███████║\n╚═╝     ╚═╝╚═╝  ╚═╝╚══════╝╚══════╝ ╚═════╝ ╚══════╝\n\nPixelOS 98 — Retro Desktop OS\nBTech Final Year Project · 2025\n`,
+  ls:()=>`\n📁 Documents/\n📁 Downloads/\n📁 Pictures/\n📁 Projects/\n📄 README.txt\n📄 config.json\n`,
+  pwd:()=>'\n  /home/pixeluser/Desktop',
+  whoami:()=>'\n  pixeluser',
+  date:()=>`\n  ${new Date().toString()}`,
+  echo:(a)=>'\n  '+a.join(' '),
+  neofetch:()=>`\n  🖥️  PixelOS 98\n  ━━━━━━━━━━━━━━━━━━━━━━\n  OS: PixelOS 98 x64\n  Shell: PixelBash 2.0\n  Framework: React 18.2.0\n  Styling: Tailwind CSS 3.4\n  Resolution: ${window.innerWidth}x${window.innerHeight}\n  Font: Press Start 2P\n`,
+  skills:()=>'\n  💻 Frontend: React, HTML5, CSS3, Tailwind, TypeScript\n  ⚙️  Backend: Node.js, Express, Django, FastAPI\n  🗄️  Database: MongoDB, PostgreSQL, MySQL\n  🛠️  Tools: Git, Docker, VS Code, Figma\n',
+  projects:()=>'\n  🖥️  PixelOS 98       — Retro Desktop OS (current)\n  🛒 E-Commerce App   — React + Node.js\n  💬 Chat Application — Socket.io + MongoDB\n  📊 Analytics Board  — D3.js + FastAPI\n',
+  contact:()=>'\n  📧 Email: pixeldev@example.com\n  🐙 GitHub: github.com/pixeldev\n  💼 LinkedIn: linkedin.com/in/pixeldev\n',
+  joke:()=>{const j=['Why do programmers prefer dark mode?\nBecause light attracts bugs! 🐛','A SQL query walks into a bar...\n"Can I JOIN you?" 🍺','Why did the dev go broke?\nUsed up all their cache! 💸'];return '\n  '+j[Math.floor(Math.random()*j.length)]},
+  matrix:()=>'\n  Wake up, Neo...\n  The Matrix has you...\n  Follow the white rabbit. 🐇\n  \n  [Initiating red pill...]\n  ██████████████ 100%\n  Welcome to the real world. 💊\n',
+  cat:(a)=>a[0]==='README.txt'?'\n  # PixelOS README\n  Welcome to PixelOS 98!\n  Built with React + Tailwind.\n':a[0]==='config.json'?'\n  {\n    "os":"PixelOS 98","version":"1.0.0",\n    "stack":["React","Vite","Tailwind"]\n  }\n':`\n  cat: ${a[0]||'(no file)'}: No such file\n`,
+};
+
+function Terminal() {
+  const [hist,setHist]=useState([{t:'o',s:CMDS.neofetch()},{t:'o',s:"\nType 'help' for commands.\n"}]);
+  const [inp,setInp]=useState('');
+  const [cmdH,setCmdH]=useState([]);
+  const [ci,setCi]=useState(-1);
+  const bot=useRef(null);
+  const iref=useRef(null);
+  useEffect(()=>bot.current?.scrollIntoView({behavior:'smooth'}),[hist]);
+
+  const run=()=>{
+    const line=inp.trim();
+    if(!line){setHist(h=>[...h,{t:'p',s:''}]);return}
+    const parts=line.split(/\s+/),cmd=parts[0].toLowerCase(),args=parts.slice(1);
+    let out;
+    if(cmd==='clear'){setHist([]);setInp('');setCmdH(h=>[line,...h]);setCi(-1);return}
+    out=CMDS[cmd]?CMDS[cmd](args):`\n  Command not found: '${cmd}'. Type 'help'.\n`;
+    setHist(h=>[...h,{t:'p',s:line},{t:'o',s:out}]);
+    setCmdH(h=>[line,...h]); setCi(-1); setInp('');
+  };
+  const key=e=>{
+    if(e.key==='Enter')run();
+    if(e.key==='ArrowUp'){e.preventDefault();const i=Math.min(ci+1,cmdH.length-1);setCi(i);setInp(cmdH[i]||'')}
+    if(e.key==='ArrowDown'){e.preventDefault();const i=Math.max(ci-1,-1);setCi(i);setInp(i===-1?'':cmdH[i])}
+  };
+
+  return (
+    <div className="crt scanlines" style={{height:'100%',display:'flex',flexDirection:'column',background:'#0a0a0a',color:'#00ff00',position:'relative'}}
+      onClick={()=>iref.current?.focus()}>
+      <div style={{flex:1,overflowY:'auto',padding:8,fontFamily:"'VT323',monospace",fontSize:18,lineHeight:1.4}}>
+        {hist.map((l,i)=>(
+          <div key={i}>
+            {l.t==='p'&&<div><span style={{color:'#00ff00'}}>pixeluser@PixelOS</span><span style={{color:'#fff'}}>:</span><span style={{color:'#4488ff'}}>~$</span><span style={{color:'#fff'}}> {l.s}</span></div>}
+            {l.t==='o'&&<pre style={{color:'#aaffaa',whiteSpace:'pre-wrap',margin:0}}>{l.s}</pre>}
+          </div>
+        ))}
+        <div style={{display:'flex',alignItems:'center'}}>
+          <span style={{color:'#00ff00'}}>pixeluser@PixelOS</span>
+          <span style={{color:'#fff'}}>:</span><span style={{color:'#4488ff'}}>~$</span>
+          <span style={{color:'#fff'}}>&nbsp;</span>
+          <input ref={iref} value={inp} onChange={e=>setInp(e.target.value)} onKeyDown={key} autoFocus spellCheck={false}
+            style={{flex:1,background:'transparent',border:'none',outline:'none',color:'#fff',fontFamily:"'VT323',monospace",fontSize:18,caretColor:'#00ff00'}}/>
+        </div>
+        <div ref={bot}/>
+      </div>
+    </div>
+  );
+}
+
+/* ── Minesweeper ── */
+const MS_ROWS=9,MS_COLS=9,MS_MINES=10;
+const CC=['','#0000ff','#008000','#ff0000','#800080','#800000','#008080','#000','#808080'];
+
+function mkBoard(){
+  const b=Array(MS_ROWS).fill(null).map(()=>Array(MS_COLS).fill(null).map(()=>({mine:false,rev:false,flag:false,n:0})));
+  let p=0; while(p<MS_MINES){const r=Math.floor(Math.random()*MS_ROWS),c=Math.floor(Math.random()*MS_COLS);if(!b[r][c].mine){b[r][c].mine=true;p++}}
+  for(let r=0;r<MS_ROWS;r++)for(let c=0;c<MS_COLS;c++){if(b[r][c].mine)continue;let n=0;for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){const nr=r+dr,nc=c+dc;if(nr>=0&&nr<MS_ROWS&&nc>=0&&nc<MS_COLS&&b[nr][nc].mine)n++}b[r][c].n=n;}
+  return b;
+}
+
+function revCell(b,r,c){
+  if(r<0||r>=MS_ROWS||c<0||c>=MS_COLS||b[r][c].rev||b[r][c].flag)return b;
+  const nb=b.map(row=>row.map(cell=>({...cell})));
+  nb[r][c].rev=true;
+  if(nb[r][c].n===0&&!nb[r][c].mine)for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++)if(dr||dc)revCell(nb,r+dr,c+dc).forEach((row,ri)=>row.forEach((cell,ci)=>nb[ri][ci]=cell));
+  return nb;
+}
+
+function Minesweeper() {
+  const [board,setBoard]=useState(mkBoard);
+  const [status,setStatus]=useState('play');
+  const [flags,setFlags]=useState(MS_MINES);
+  const [time,setTime]=useState(0);
+  const [go,setGo]=useState(false);
+  const [face,setFace]=useState('😀');
+
+  useEffect(()=>{if(!go||status!=='play')return;const t=setInterval(()=>setTime(s=>Math.min(s+1,999)),1000);return()=>clearInterval(t)},[go,status]);
+
+  const reset=()=>{setBoard(mkBoard());setStatus('play');setFlags(MS_MINES);setTime(0);setGo(false);setFace('😀')};
+
+  const click=(r,c)=>{
+    if(status!=='play')return;
+    const cell=board[r][c]; if(cell.rev||cell.flag)return;
+    if(!go)setGo(true);
+    if(cell.mine){
+      const nb=board.map((row,ri)=>row.map((cell,ci)=>({...cell,rev:cell.mine?true:cell.rev,exploded:ri===r&&ci===c})));
+      setBoard(nb); setStatus('lost'); setFace('😵'); return;
+    }
+    const nb=revCell(board.map(row=>row.map(c=>({...c}))),r,c);
+    setBoard(nb);
+    if(nb.flat().filter(c=>!c.rev&&!c.mine).length===0){setStatus('won');setFace('😎')}
+  };
+
+  const rclick=(e,r,c)=>{
+    e.preventDefault();
+    if(status!=='play')return;
+    const cell=board[r][c]; if(cell.rev)return;
+    setBoard(b=>b.map((row,ri)=>row.map((cell,ci)=>ri===r&&ci===c?{...cell,flag:!cell.flag}:cell)));
+    setFlags(f=>f+(board[r][c].flag?1:-1));
+  };
+
+  const Seg=({v,d=3})=>(
+    <div style={{background:'#000',color:'#ff0000',fontFamily:"'VT323',monospace",fontSize:24,minWidth:d*16+8,padding:'1px 4px',textAlign:'right',letterSpacing:2}}>
+      {String(Math.max(0,v)).padStart(d,'0')}
+    </div>
+  );
+
+  return (
+    <div style={{display:'flex',flexDirection:'column',alignItems:'center',padding:8,background:'#c0c0c0',height:'100%',userSelect:'none'}}>
+      <div className="pbi" style={{width:'100%',display:'flex',alignItems:'center',justifyContent:'space-between',padding:4,marginBottom:8}}>
+        <Seg v={flags}/>
+        <button className="pbtn" style={{fontSize:20,padding:'2px 8px'}}
+          onClick={reset} onMouseDown={()=>setFace('😮')} onMouseUp={()=>status==='play'&&setFace('😀')}>{face}</button>
+        <Seg v={time}/>
+      </div>
+      <div className="pbi">
+        {board.map((row,r)=>(
+          <div key={r} style={{display:'flex'}}>
+            {row.map((cell,c)=>{
+              let content='', color='#000', bg=cell.rev?'#c0c0c0':'#c0c0c0';
+              if(cell.rev){if(cell.mine)content=cell.exploded?'💥':'💣'; else if(cell.n>0){content=cell.n; color=CC[cell.n]}}
+              else if(cell.flag)content='🚩';
+              return (
+                <div key={c} onClick={()=>click(r,c)} onContextMenu={e=>rclick(e,r,c)}
+                  style={{width:28,height:28,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',
+                    fontFamily:"'Press Start 2P',monospace",fontSize:11,fontWeight:'bold',color,
+                    background:cell.exploded?'#ff0000':bg,
+                    borderTop:cell.rev?'1px solid #808080':'2px solid #fff',
+                    borderLeft:cell.rev?'1px solid #808080':'2px solid #fff',
+                    borderBottom:cell.rev?'1px solid #fff':'2px solid #808080',
+                    borderRight:cell.rev?'1px solid #fff':'2px solid #808080',
+                  }}>{content}</div>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+      {status!=='play'&&(
+        <div style={{marginTop:12,textAlign:'center',fontFamily:"'Press Start 2P'",fontSize:10}}>
+          <div>{status==='won'?'🎉 YOU WIN! 🎉':'💥 GAME OVER 💥'}</div>
+          <button className="pbtn" style={{marginTop:8}} onClick={reset}>New Game</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── Media Player ── */
+const TRACKS=[
+  {t:'Pixel Dreams',  a:'RetroWave', d:'3:42'},
+  {t:'Neon City',     a:'CyberChip', d:'4:15'},
+  {t:'Boot Screen',   a:'OSTheme',   d:'0:32'},
+  {t:'Loading Zone',  a:'PixelBeat', d:'2:58'},
+  {t:'Game Over',     a:'ArcadeSnd', d:'1:20'},
+  {t:'High Score',    a:'ArcadeSnd', d:'0:45'},
+];
+const VCOLS=['#00ff00','#44ff00','#88ff00','#ccff00','#ffcc00','#ff8800','#ff0000'];
+
+function MediaPlayer() {
+  const [track,setTrack]=useState(0);
+  const [playing,setPlaying]=useState(false);
+  const [prog,setProg]=useState(0);
+  const [vol,setVol]=useState(75);
+  const [repeat,setRepeat]=useState(false);
+  const [shuffle,setShuffle]=useState(false);
+  const [viz,setViz]=useState(Array(22).fill(2));
+  const pt=useRef(null),vt=useRef(null);
+  const cur=TRACKS[track];
+
+  useEffect(()=>{
+    if(playing){pt.current=setInterval(()=>setProg(p=>{if(p>=100){if(repeat)return 0;setTrack(t=>(t+1)%TRACKS.length);return 0}return p+0.5}),150)}
+    else clearInterval(pt.current);
+    return()=>clearInterval(pt.current);
+  },[playing,repeat]);
+
+  useEffect(()=>{
+    if(playing){vt.current=setInterval(()=>setViz(Array(22).fill(0).map(()=>Math.floor(Math.random()*28)+2)),100)}
+    else{clearInterval(vt.current);setViz(Array(22).fill(2))}
+    return()=>clearInterval(vt.current);
+  },[playing]);
+
+  return (
+    <div style={{height:'100%',display:'flex',flexDirection:'column',background:'#1a1a2e',padding:10,gap:10}}>
+      {/* Viz */}
+      <div className="pbi" style={{height:96,background:'#000011',position:'relative',display:'flex',alignItems:'flex-end',justifyContent:'center',overflow:'hidden'}}>
+        <div style={{position:'absolute',top:6,left:6,right:6}}>
+          <div style={{fontFamily:"'Press Start 2P'",fontSize:8,color:'#00ffff'}}>{cur.t}</div>
+          <div style={{fontFamily:"'VT323'",fontSize:14,color:'#555'}}>{cur.a}</div>
+        </div>
+        <div style={{display:'flex',alignItems:'flex-end',gap:2,paddingBottom:4,paddingInline:8,width:'100%',justifyContent:'center'}}>
+          {viz.map((h,i)=>{const ci=Math.min(Math.floor(h/5),6);return(
+            <div key={i} style={{width:7,height:h,background:VCOLS[ci],transition:playing?'height .1s':'height .5s',
+              boxShadow:playing?`0 0 3px ${VCOLS[ci]}`:'none'}}/>
+          )})}
+        </div>
+      </div>
+      {/* Progress */}
+      <div>
+        <div className="pprog" style={{cursor:'pointer'}} onClick={e=>{const r=e.currentTarget.getBoundingClientRect();setProg(((e.clientX-r.left)/r.width)*100)}}>
+          <div className="pprogbar" style={{width:prog+'%'}}/>
+        </div>
+        <div style={{display:'flex',justifyContent:'space-between',fontFamily:"'VT323'",fontSize:14,color:'#777',marginTop:2}}>
+          <span>0:00</span><span>{cur.d}</span>
+        </div>
+      </div>
+      {/* Controls */}
+      <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:6}}>
+        <button className={`pbtn${shuffle?' pressed':''}`} onClick={()=>setShuffle(s=>!s)} style={{fontSize:10}}>🔀</button>
+        <button className="pbtn" onClick={()=>setTrack(t=>(t-1+TRACKS.length)%TRACKS.length)} style={{fontSize:12}}>⏮</button>
+        <button className="pbtn" onClick={()=>setPlaying(p=>!p)} style={{width:40,height:32,fontSize:16}}>{playing?'⏸':'▶'}</button>
+        <button className="pbtn" onClick={()=>setTrack(t=>(t+1)%TRACKS.length)} style={{fontSize:12}}>⏭</button>
+        <button className={`pbtn${repeat?' pressed':''}`} onClick={()=>setRepeat(r=>!r)} style={{fontSize:10}}>🔁</button>
+      </div>
+      {/* Volume */}
+      <div style={{display:'flex',alignItems:'center',gap:6}}>
+        <span style={{fontFamily:"'Press Start 2P'",fontSize:9}}>🔊</span>
+        <input type="range" min={0} max={100} value={vol} onChange={e=>setVol(+e.target.value)} style={{flex:1}}/>
+        <span style={{fontFamily:"'VT323'",fontSize:16,color:'#777',minWidth:36}}>{vol}%</span>
+      </div>
+      {/* Playlist */}
+      <div className="pbi" style={{flex:1,overflowY:'auto',background:'#0a0a1a'}}>
+        {TRACKS.map((t,i)=>(
+          <div key={i} onDoubleClick={()=>{setTrack(i);setPlaying(true);setProg(0)}}
+            style={{display:'flex',alignItems:'center',gap:8,padding:'4px 8px',cursor:'pointer',
+              background:i===track?'#000080':'transparent',color:i===track?'#fff':'#666',borderBottom:'1px solid #111'}}>
+            <span style={{fontFamily:"'VT323'",fontSize:16,width:16}}>{i===track&&playing?'♪':i+1}</span>
+            <span style={{fontFamily:"'VT323'",fontSize:17,flex:1}}>{t.t}</span>
+            <span style={{fontFamily:"'VT323'",fontSize:14}}>{t.d}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ── File Explorer ── */
+const FS_DATA={name:'My Computer',type:'root',children:[
+  {name:'C: Drive',type:'drive',icon:'💾',children:[
+    {name:'Documents',type:'folder',icon:'📁',children:[
+      {name:'Resume.docx',type:'file',icon:'📄',size:'24 KB',mod:'12/01/2025'},
+      {name:'Project_Report.pdf',type:'file',icon:'📋',size:'1.2 MB',mod:'15/02/2025'},
+    ]},
+    {name:'Projects',type:'folder',icon:'📁',children:[
+      {name:'PixelOS',type:'folder',icon:'📁',children:[
+        {name:'src',type:'folder',icon:'📁',children:[]},
+        {name:'package.json',type:'file',icon:'📄',size:'1.2 KB',mod:'01/04/2025'},
+        {name:'vite.config.js',type:'file',icon:'⚙️',size:'0.3 KB',mod:'01/04/2025'},
+      ]},
+    ]},
+    {name:'config.sys',type:'file',icon:'⚙️',size:'1 KB',mod:'01/01/2025'},
+  ]},
+  {name:'D: Downloads',type:'drive',icon:'💿',children:[
+    {name:'react-18.zip',type:'file',icon:'📦',size:'12 MB',mod:'10/03/2025'},
+  ]},
+  {name:'Recycle Bin',type:'drive',icon:'🗑️',children:[]},
+]};
+
+function FsNode({node,lvl=0,onSel,sel}){
+  const [open,setOpen]=useState(lvl<1);
+  const has=node.children&&node.children.length>0;
+  const isSel=sel===node;
+  return (
+    <div>
+      <div onClick={e=>{e.stopPropagation();onSel(node);if(has)setOpen(o=>!o)}}
+        style={{display:'flex',alignItems:'center',gap:4,paddingLeft:lvl*14+4,height:22,cursor:'pointer',
+          background:isSel?'#000080':'transparent',color:isSel?'#fff':'inherit',
+          fontFamily:"'Press Start 2P'",fontSize:7}}>
+        <span style={{fontSize:8,width:10}}>{has?(open?'▼':'▶'):''}</span>
+        <span>{node.icon||'📄'}</span>
+        <span style={{overflow:'hidden',whiteSpace:'nowrap',textOverflow:'ellipsis'}}>{node.name}</span>
+      </div>
+      {open&&has&&node.children.map((c,i)=><FsNode key={i} node={c} lvl={lvl+1} onSel={onSel} sel={sel}/>)}
+    </div>
+  );
+}
+
+function FileExplorer() {
+  const [sel,setSel]=useState(null);
+  const [view,setView]=useState('icons');
+  const items=sel?.children||FS_DATA.children;
+  return (
+    <div style={{display:'flex',flexDirection:'column',height:'100%'}}>
+      <div className="menubar">
+        <div className="mitem">File</div><div className="mitem">Edit</div>
+        <div className="mitem">View</div><div className="mitem">Go</div>
+      </div>
+      <div style={{display:'flex',alignItems:'center',gap:4,padding:4,borderBottom:'1px solid #808080'}}>
+        <span style={{fontFamily:"'Press Start 2P'",fontSize:7}}>Address:</span>
+        <div className="pbi" style={{flex:1,padding:'2px 6px',background:'#fff',fontFamily:"'Press Start 2P'",fontSize:7,height:22,display:'flex',alignItems:'center'}}>
+          📁 {sel?.name||'My Computer'}
+        </div>
+        <button className={`pbtn${view==='icons'?' pressed':''}`} onClick={()=>setView('icons')} style={{fontSize:12,width:24,padding:0}}>⊞</button>
+        <button className={`pbtn${view==='list'?' pressed':''}`} onClick={()=>setView('list')} style={{fontSize:12,width:24,padding:0}}>☰</button>
+      </div>
+      <div style={{display:'flex',flex:1,overflow:'hidden'}}>
+        <div style={{width:180,overflowY:'auto',background:'#fff',borderRight:'1px solid #808080',flexShrink:0}}>
+          <FsNode node={FS_DATA} lvl={0} onSel={setSel} sel={sel}/>
+        </div>
+        <div style={{flex:1,overflowY:'auto',padding:8,background:'#fff'}}>
+          {view==='icons'?(
+            <div style={{display:'flex',flexWrap:'wrap',gap:12}}>
+              {items.map((it,i)=>(
+                <div key={i} onDoubleClick={()=>setSel(it)}
+                  style={{display:'flex',flexDirection:'column',alignItems:'center',gap:4,width:64,padding:6,cursor:'pointer',textAlign:'center'}}
+                  className="dicon">
+                  <span style={{fontSize:28}}>{it.icon||'📄'}</span>
+                  <span style={{fontFamily:"'Press Start 2P'",fontSize:6,wordBreak:'break-all'}}>{it.name}</span>
+                </div>
+              ))}
+            </div>
+          ):(
+            <table style={{width:'100%',fontFamily:"'Press Start 2P'",fontSize:7,borderCollapse:'collapse'}}>
+              <thead><tr style={{borderBottom:'1px solid #808080',background:'#c0c0c0'}}>
+                {['Name','Size','Type','Modified'].map(h=><th key={h} style={{textAlign:'left',padding:'4px 8px'}}>{h}</th>)}
+              </tr></thead>
+              <tbody>
+                {items.map((it,i)=>(
+                  <tr key={i} style={{borderBottom:'1px solid #eee',cursor:'pointer'}} onDoubleClick={()=>setSel(it)}>
+                    <td style={{padding:'4px 8px'}}>{it.icon} {it.name}</td>
+                    <td style={{padding:'4px 8px'}}>{it.size||'—'}</td>
+                    <td style={{padding:'4px 8px'}}>{it.type}</td>
+                    <td style={{padding:'4px 8px'}}>{it.mod||'—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+          {items.length===0&&<div style={{fontFamily:"'Press Start 2P'",fontSize:8,color:'#888',textAlign:'center',marginTop:40}}>This folder is empty.</div>}
+        </div>
+      </div>
+      <div className="pbi" style={{margin:'0 4px 4px',padding:'2px 8px',fontFamily:"'Press Start 2P'",fontSize:7}}>
+        {items.length} object(s){sel?.size?` | ${sel.size}`:''}
+      </div>
+    </div>
+  );
+}
+
+/* ── Calculator ── */
+function Calculator() {
+  const [disp,setDisp]=useState('0');
+  const [prev,setPrev]=useState(null);
+  const [op,setOp]=useState(null);
+  const [fresh,setFresh]=useState(true);
+  const [mem,setMem]=useState(0);
+  const [log,setLog]=useState([]);
+
+  const num=n=>{if(fresh){setDisp(String(n));setFresh(false)}else setDisp(d=>d.length>=12?d:(d==='0'?String(n):d+n))};
+  const dot=()=>{if(fresh){setDisp('0.');setFresh(false);return}if(!disp.includes('.'))setDisp(d=>d+'.')};
+  const calc=(a,b,o)=>{switch(o){case'+':return+(a+b).toFixed(10);case'-':return+(a-b).toFixed(10);case'×':return+(a*b).toFixed(10);case'÷':return b?+(a/b).toFixed(10):'Error';case'%':return+(a%b).toFixed(10);}};
+  const opr=o=>{const c=parseFloat(disp);if(prev!==null&&!fresh){const r=calc(prev,c,op);setDisp(String(r));setPrev(r)}else setPrev(c);setOp(o);setFresh(true)};
+  const eq=()=>{if(!op||prev===null)return;const c=parseFloat(disp),r=calc(prev,c,op);setLog(l=>[`${prev}${op}${c}=${r}`,...l].slice(0,8));setDisp(String(r));setPrev(null);setOp(null);setFresh(true)};
+  const C=()=>{setDisp('0');setPrev(null);setOp(null);setFresh(true)};
+
+  const Btn=({l,onClick,blue,red,dark,w})=>(
+    <button className="pbtn" onClick={onClick}
+      style={{width:w||42,height:32,fontSize:8,padding:0,
+        background:blue?'#b0c4de':red?'#ffb0b0':dark?'#a0a0a0':'#c0c0c0'}}>
+      {l}
+    </button>
+  );
+
+  return (
+    <div style={{display:'flex',gap:8,padding:8,height:'100%',background:'#c0c0c0'}}>
+      <div style={{display:'flex',flexDirection:'column',gap:6,flexShrink:0}}>
+        <div className="pbi" style={{background:'#d4edda',padding:'4px 8px',textAlign:'right'}}>
+          <div style={{fontFamily:"'VT323'",fontSize:11,color:'#555',minHeight:14}}>{prev!==null?`${prev} ${op||''} `:'​'}</div>
+          <div style={{fontFamily:"'VT323'",fontSize:30,color:'#000'}}>{disp.length>10?parseFloat(disp).toExponential(3):disp}</div>
+        </div>
+        <div style={{display:'flex',gap:2}}>
+          {[['MC',()=>setMem(0)],['MR',()=>{setDisp(String(mem));setFresh(false)}],['M+',()=>setMem(m=>m+parseFloat(disp))],['M-',()=>setMem(m=>m-parseFloat(disp))]].map(([l,a])=>(
+            <button key={l} className="pbtn" style={{flex:1,fontSize:6,height:22}} onClick={a}>{l}</button>
+          ))}
+        </div>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(4,42px)',gap:3}}>
+          <Btn l="%" onClick={()=>opr('%')} dark/><Btn l="CE" onClick={()=>{setDisp('0');setFresh(true)}} dark/><Btn l="C" onClick={C} red/><Btn l="⌫" onClick={()=>{if(fresh||disp.length===1){setDisp('0');setFresh(true);return}setDisp(d=>d.slice(0,-1)||'0')}} red/>
+          <Btn l="1/x" onClick={()=>setDisp(String(1/parseFloat(disp)))} dark/><Btn l="x²" onClick={()=>setDisp(String(parseFloat(disp)**2))} dark/><Btn l="√" onClick={()=>setDisp(String(+Math.sqrt(parseFloat(disp)).toFixed(10)))} dark/><Btn l="÷" onClick={()=>opr('÷')} blue/>
+          {[7,8,9].map(n=><Btn key={n} l={n} onClick={()=>num(n)}/>)}<Btn l="×" onClick={()=>opr('×')} blue/>
+          {[4,5,6].map(n=><Btn key={n} l={n} onClick={()=>num(n)}/>)}<Btn l="−" onClick={()=>opr('-')} blue/>
+          {[1,2,3].map(n=><Btn key={n} l={n} onClick={()=>num(n)}/>)}<Btn l="+" onClick={()=>opr('+')} blue/>
+          <Btn l="+/−" onClick={()=>setDisp(d=>String(-parseFloat(d)))}/><Btn l="0" onClick={()=>num(0)}/><Btn l="." onClick={dot}/><Btn l="=" onClick={eq} blue/>
+        </div>
+      </div>
+      <div style={{flex:1,display:'flex',flexDirection:'column',minWidth:0}}>
+        <div style={{fontFamily:"'Press Start 2P'",fontSize:7,marginBottom:4}}>HISTORY</div>
+        <div className="pbi" style={{flex:1,overflowY:'auto',padding:4,background:'#fff'}}>
+          {log.length===0?<div style={{fontFamily:"'VT323'",fontSize:14,color:'#888'}}>No history...</div>
+            :log.map((e,i)=><div key={i} style={{fontFamily:"'VT323'",fontSize:15,borderBottom:'1px solid #eee',padding:'2px 0'}}>{e}</div>)}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Settings ── */
+function Settings({ onWallpaper }) {
+  const [tab,setTab]=useState('display');
+  const [wp,setWp]=useState('teal');
+  const WPS=[{id:'teal',c:'#008080',l:'Teal'},{id:'navy',c:'#000080',l:'Navy'},{id:'wine',c:'#800000',l:'Wine'},
+              {id:'forest',c:'#006400',l:'Forest'},{id:'purple',c:'#4B0082',l:'Purple'},{id:'black',c:'#111',l:'Black'}];
+  return (
+    <div style={{display:'flex',flexDirection:'column',height:'100%'}}>
+      <div style={{display:'flex',borderBottom:'2px solid #808080',paddingLeft:8,paddingTop:8,gap:2}}>
+        {['display','sound','system'].map(t=>(
+          <div key={t} onClick={()=>setTab(t)} style={{fontFamily:"'Press Start 2P'",fontSize:7,padding:'4px 10px',cursor:'pointer',textTransform:'capitalize',
+            background:tab===t?'#c0c0c0':'#a0a0a0',borderTop:`2px solid ${tab===t?'#fff':'#888'}`,borderLeft:`2px solid ${tab===t?'#fff':'#888'}`,
+            borderRight:`2px solid ${tab===t?'#808080':'#555'}`,position:'relative',bottom:tab===t?-2:0}}>
+            {t}
+          </div>
+        ))}
+      </div>
+      <div style={{flex:1,overflowY:'auto',padding:16}}>
+        {tab==='display'&&(
+          <div style={{display:'flex',flexDirection:'column',gap:16}}>
+            <div>
+              <div style={{fontFamily:"'Press Start 2P'",fontSize:8,marginBottom:8}}>🖼️ Wallpaper Color</div>
+              <div style={{display:'flex',flexWrap:'wrap',gap:8}}>
+                {WPS.map(w=>(
+                  <div key={w.id} onClick={()=>{setWp(w.id);onWallpaper&&onWallpaper(w.c)}}
+                    style={{display:'flex',flexDirection:'column',alignItems:'center',gap:4,cursor:'pointer'}}>
+                    <div style={{width:44,height:32,background:w.c,border:wp===w.id?'3px solid #ffff00':'2px solid #808080'}}/>
+                    <span style={{fontFamily:"'Press Start 2P'",fontSize:6}}>{w.l}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="ddivider"/>
+            <div>
+              <div style={{fontFamily:"'Press Start 2P'",fontSize:8,marginBottom:8}}>🖥️ Display</div>
+              {[['Resolution',['800x600','1024x768','1280x720','1920x1080']],['Color Depth',['8-bit','16-bit','32-bit']],['Refresh Rate',['30Hz','60Hz','120Hz','144Hz']]].map(([l,opts])=>(
+                <div key={l} style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}>
+                  <span style={{fontFamily:"'Press Start 2P'",fontSize:7,width:100}}>{l}</span>
+                  <select className="pselect">{opts.map(o=><option key={o}>{o}</option>)}</select>
+                </div>
+              ))}
+            </div>
+            <div style={{display:'flex',gap:8,marginTop:4}}>
+              <button className="pbtn">Apply</button><button className="pbtn">OK</button><button className="pbtn">Cancel</button>
+            </div>
+          </div>
+        )}
+        {tab==='sound'&&(
+          <div>
+            <div style={{fontFamily:"'Press Start 2P'",fontSize:8,marginBottom:12}}>🔊 Sound Events</div>
+            {['Startup','Shutdown','Error','Notification','Click'].map(ev=>(
+              <div key={ev} style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}>
+                <span style={{fontFamily:"'Press Start 2P'",fontSize:7,width:100}}>{ev}</span>
+                <select className="pselect" style={{flex:1}}><option>(None)</option><option>beep.wav</option><option>chime.wav</option></select>
+                <button className="pbtn" style={{fontSize:10}}>▶</button>
+              </div>
+            ))}
+          </div>
+        )}
+        {tab==='system'&&(
+          <div style={{display:'flex',flexDirection:'column',gap:8,alignItems:'center',textAlign:'center'}}>
+            <div style={{fontSize:48}}>🪟</div>
+            <div style={{fontFamily:"'Press Start 2P'",fontSize:12}}>PixelOS 98</div>
+            <div style={{fontFamily:"'Press Start 2P'",fontSize:8}}>Version 1.0.0</div>
+            <div className="pbi" style={{padding:8,width:'100%',background:'#fff',textAlign:'left'}}>
+              <div style={{fontFamily:"'VT323'",fontSize:16,lineHeight:1.8}}>
+                Browser: {navigator.userAgent.split('/')[0]}<br/>
+                Screen: {screen.width}×{screen.height}<br/>
+                Platform: Web<br/>
+                Stack: React 18 + Vite + Tailwind
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ── Portfolio ── */
+const PROJS=[
+  {n:'PixelOS 98',tech:['React','Vite','Tailwind'],d:'Retro desktop OS — this very project!',e:'🖥️',c:'#000080',y:'2025',s:'Live'},
+  {n:'ChatApp',tech:['React','Socket.io','MongoDB'],d:'Real-time messaging with rooms & reactions.',e:'💬',c:'#006400',y:'2024',s:'Done'},
+  {n:'E-Commerce',tech:['React','Node.js','PostgreSQL'],d:'Full-stack store with payments & admin.',e:'🛒',c:'#800000',y:'2024',s:'Done'},
+  {n:'ML Dashboard',tech:['Python','TensorFlow','FastAPI'],d:'ML training UI with live metrics.',e:'🤖',c:'#4B0082',y:'2024',s:'WIP'},
+];
+const SKILLS_DATA=[
+  {cat:'Frontend',items:[['React',95],['HTML/CSS',90],['Tailwind',88],['TypeScript',75]]},
+  {cat:'Backend', items:[['Node.js',80],['Python',75],['Express',78],['FastAPI',65]]},
+  {cat:'Database',items:[['MongoDB',82],['PostgreSQL',70],['MySQL',68],['Redis',55]]},
+  {cat:'DevOps',  items:[['Git',90],['Docker',65],['AWS',55],['Figma',70]]},
+];
+
+function Portfolio() {
+  const [tab,setTab]=useState('home');
+  const TABS=[{id:'home',l:'🏠 Home'},{id:'projects',l:'📁 Projects'},{id:'skills',l:'⚡ Skills'},{id:'contact',l:'📧 Contact'}];
+  return (
+    <div style={{display:'flex',flexDirection:'column',height:'100%'}}>
+      <div style={{display:'flex',borderBottom:'2px solid #808080',paddingLeft:8,paddingTop:8,gap:2}}>
+        {TABS.map(t=>(
+          <button key={t.id} onClick={()=>setTab(t.id)} style={{fontFamily:"'Press Start 2P'",fontSize:7,padding:'4px 8px',cursor:'pointer',
+            background:tab===t.id?'#c0c0c0':'#a0a0a0',borderTop:`2px solid ${tab===t.id?'#fff':'#888'}`,borderLeft:`2px solid ${tab===t.id?'#fff':'#888'}`,
+            borderRight:`2px solid ${tab===t.id?'#808080':'#555'}`,border:'none',position:'relative',bottom:tab===t.id?-2:0}}>
+            {t.l}
+          </button>
+        ))}
+      </div>
+      <div style={{flex:1,overflowY:'auto',padding:16}}>
+        {tab==='home'&&(
+          <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:12,textAlign:'center'}}>
+            <div style={{fontSize:60}}>🧑‍💻</div>
+            <div style={{fontFamily:"'Press Start 2P'",fontSize:14,color:'#000080'}}>John Doe</div>
+            <div style={{fontFamily:"'VT323'",fontSize:20,color:'#444'}}>Full Stack Developer · BTech CSE · 2025</div>
+            <div className="pbi" style={{padding:12,background:'#fff',textAlign:'left',width:'100%',fontFamily:"'VT323'",fontSize:17,lineHeight:1.7}}>
+              Welcome! I'm a passionate developer who loves building elegant solutions.<br/>
+              This portfolio is built as a retro Windows 98-inspired OS — my BTech final year project.<br/><br/>
+              I specialize in React, Node.js, and Python, and enjoy creating pixel-perfect UIs.
+            </div>
+            <div style={{display:'flex',gap:12,flexWrap:'wrap',justifyContent:'center'}}>
+              {['📧 Email','🐙 GitHub','💼 LinkedIn','🌐 Website'].map(c=><button key={c} className="pbtn">{c}</button>)}
+            </div>
+            <div style={{display:'flex',gap:24}}>
+              {[['15+','Projects'],['8+','Tech Stack'],['3yr','Coding'],['100%','Passion']].map(([v,l])=>(
+                <div key={l} style={{textAlign:'center'}}>
+                  <div style={{fontFamily:"'VT323'",fontSize:28,color:'#000080'}}>{v}</div>
+                  <div style={{fontFamily:"'Press Start 2P'",fontSize:7}}>{l}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        {tab==='projects'&&(
+          <div style={{display:'flex',flexDirection:'column',gap:10}}>
+            {PROJS.map(p=>(
+              <div key={p.n} className="pbo" style={{display:'flex',gap:10,padding:10}}>
+                <div style={{width:50,height:50,background:p.c,display:'flex',alignItems:'center',justifyContent:'center',fontSize:24,flexShrink:0}}>{p.e}</div>
+                <div style={{flex:1}}>
+                  <div style={{display:'flex',alignItems:'center',gap:6,flexWrap:'wrap',marginBottom:4}}>
+                    <span style={{fontFamily:"'Press Start 2P'",fontSize:8}}>{p.n}</span>
+                    <span style={{fontFamily:"'Press Start 2P'",fontSize:6,background:p.s==='Live'?'#008000':p.s==='WIP'?'#808000':'#000080',color:'#fff',padding:'1px 4px'}}>{p.s}</span>
+                    <span style={{fontFamily:"'Press Start 2P'",fontSize:6,color:'#888'}}>{p.y}</span>
+                  </div>
+                  <div style={{fontFamily:"'VT323'",fontSize:16,color:'#444',marginBottom:4}}>{p.d}</div>
+                  <div style={{display:'flex',gap:4,flexWrap:'wrap'}}>
+                    {p.tech.map(t=><span key={t} style={{fontFamily:"'Press Start 2P'",fontSize:6,background:'#c0c0c0',border:'1px solid #808080',padding:'1px 4px'}}>{t}</span>)}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        {tab==='skills'&&(
+          <div style={{display:'flex',flexDirection:'column',gap:16}}>
+            {SKILLS_DATA.map(cat=>(
+              <div key={cat.cat}>
+                <div style={{fontFamily:"'Press Start 2P'",fontSize:8,marginBottom:8}}>{cat.cat}</div>
+                {cat.items.map(([sk,pct])=>(
+                  <div key={sk} style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}>
+                    <span style={{fontFamily:"'Press Start 2P'",fontSize:7,width:90,flexShrink:0}}>{sk}</span>
+                    <div className="pprog" style={{flex:1,height:14}}><div className="pprogbar" style={{width:pct+'%'}}/></div>
+                    <span style={{fontFamily:"'VT323'",fontSize:16,minWidth:36,textAlign:'right'}}>{pct}%</span>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        )}
+        {tab==='contact'&&(
+          <div style={{display:'flex',flexDirection:'column',gap:10}}>
+            <div style={{fontFamily:"'Press Start 2P'",fontSize:8,marginBottom:4}}>📬 Get In Touch</div>
+            {[['📧','Email','john.doe@example.com'],['🐙','GitHub','github.com/johndoe'],['💼','LinkedIn','linkedin.com/in/johndoe'],['🌐','Website','johndoe.dev']].map(([ic,l,v])=>(
+              <div key={l} className="pbo" style={{display:'flex',alignItems:'center',gap:10,padding:8,background:'#fff'}}>
+                <span style={{fontSize:20}}>{ic}</span>
+                <div><div style={{fontFamily:"'Press Start 2P'",fontSize:7}}>{l}</div><div style={{fontFamily:"'VT323'",fontSize:16,color:'#00f'}}>{v}</div></div>
+              </div>
+            ))}
+            <div style={{marginTop:8}}>
+              <div style={{fontFamily:"'Press Start 2P'",fontSize:8,marginBottom:8}}>💌 Send Message</div>
+              <div style={{display:'flex',flexDirection:'column',gap:6}}>
+                <input className="pinput" placeholder="Your name..."/>
+                <input className="pinput" placeholder="Your email..."/>
+                <textarea className="pinput" rows={3} placeholder="Your message..." style={{resize:'vertical'}}/>
+                <button className="pbtn" style={{alignSelf:'flex-start'}}>Send Message ✉️</button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ──────────────────────────────────────────────────────────────
+ * COMPONENT: BootScreen — src/App.jsx (inline)
+ * ────────────────────────────────────────────────────────────── */
+function BootScreen({ onDone }) {
+  const [step,setStep]=useState(0);
+  const [prog,setProg]=useState(0);
+  const [dots,setDots]=useState('');
+  const STEPS=['BIOS v2.98 — PixelCorp','Detecting hardware...','Memory check: 640KB OK','Loading PixelOS 98...','Initializing WM...','Starting desktop...','Welcome to PixelOS 98!'];
+
+  useEffect(()=>{
+    let si=0;
+    const st=setInterval(()=>{si++;setStep(si);if(si>=STEPS.length-1){clearInterval(st);setTimeout(onDone,700)}},380);
+    const pt=setInterval(()=>setProg(p=>Math.min(p+3,100)),55);
+    const dt=setInterval(()=>setDots(d=>d.length>=3?'':d+'.'),400);
+    return()=>{clearInterval(st);clearInterval(pt);clearInterval(dt)};
+  },[]);
+
+  return (
+    <div style={{position:'fixed',inset:0,background:'#000',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',zIndex:99999}}>
+      <div style={{position:'absolute',inset:0,backgroundImage:'repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.15) 2px,rgba(0,0,0,.15) 4px)',pointerEvents:'none'}}/>
+      <div style={{position:'relative',zIndex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:20,width:460}}>
+        <div style={{textAlign:'center'}}>
+          <div style={{fontSize:52,marginBottom:8}}>🪟</div>
+          <div style={{fontFamily:"'Press Start 2P'",fontSize:20,color:'#00aaff'}}>PixelOS 98</div>
+          <div style={{fontFamily:"'Press Start 2P'",fontSize:8,color:'#445566',marginTop:6}}>BTech Final Year Project</div>
+        </div>
+        <div style={{width:'100%',background:'#000',border:'2px solid #004400',padding:12,height:136,overflowY:'auto'}}>
+          {STEPS.slice(0,step+1).map((s,i)=>(
+            <div key={i} style={{fontFamily:"'VT323',monospace",fontSize:18,color:i===step?'#00ff00':'#006600',lineHeight:1.5}}>
+              {'>'} {s}{i===step?dots:' OK'}
+            </div>
+          ))}
+        </div>
+        <div style={{width:'100%'}}>
+          <div style={{width:'100%',height:20,background:'#001a00',border:'2px solid #004400',overflow:'hidden',position:'relative'}}>
+            <div style={{height:'100%',width:prog+'%',background:'repeating-linear-gradient(90deg,#003300,#003300 8px,#00aa00 8px,#00aa00 16px)',transition:'width .1s',boxShadow:'0 0 8px #00ff00'}}/>
+          </div>
+          <div style={{fontFamily:"'Press Start 2P'",fontSize:7,color:'#006600',textAlign:'right',marginTop:3}}>{prog}%</div>
+        </div>
+        <div style={{fontFamily:"'Press Start 2P'",fontSize:7,color:'#222',textAlign:'center'}}>
+          © 1998–2025 PixelCorp. All rights reserved.
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ──────────────────────────────────────────────────────────────
+ * COMPONENT: ContextMenu
+ * ────────────────────────────────────────────────────────────── */
+function ContextMenu({ x, y, onClose, onOpen }) {
+  const items=[
+    {l:'Refresh Desktop',ic:'🔄',a:onClose},
+    {l:'New Folder',ic:'📁',a:onClose},
+    {div:true},
+    {l:'Open Terminal',ic:'⬛',a:()=>{onOpen(APPS.TERMINAL);onClose()}},
+    {l:'Open Notepad',ic:'📝',a:()=>{onOpen(APPS.NOTEPAD);onClose()}},
+    {div:true},
+    {l:'Display Settings',ic:'⚙️',a:()=>{onOpen(APPS.SETTINGS);onClose()}},
+  ];
+  return (
+    <div className="ddmenu" style={{position:'fixed',left:x,top:y,zIndex:9998}} onMouseDown={e=>e.stopPropagation()}>
+      {items.map((it,i)=>it.div?<div key={i} className="ddivider"/>
+        :<div key={i} className="dditem" onClick={it.a}><span style={{width:20,textAlign:'center'}}>{it.ic}</span>{it.l}</div>
+      )}
+    </div>
+  );
+}
+
+/* ──────────────────────────────────────────────────────────────
+ * RENDER APP — maps appId → JSX — replaces switch in App.jsx
+ * ────────────────────────────────────────────────────────────── */
+function renderApp(appId, onWallpaper) {
+  switch(appId) {
+    case APPS.ABOUT:         return <About/>;
+    case APPS.NOTEPAD:       return <Notepad/>;
+    case APPS.PAINT:         return <Paint/>;
+    case APPS.TERMINAL:      return <Terminal/>;
+    case APPS.MINESWEEPER:   return <Minesweeper/>;
+    case APPS.MEDIA_PLAYER:  return <MediaPlayer/>;
+    case APPS.FILE_EXPLORER: return <FileExplorer/>;
+    case APPS.CALCULATOR:    return <Calculator/>;
+    case APPS.SETTINGS:      return <Settings onWallpaper={onWallpaper}/>;
+    case APPS.PORTFOLIO:     return <Portfolio/>;
+    default: return <div style={{padding:16}}>Unknown App</div>;
+  }
+}
+
+/* ──────────────────────────────────────────────────────────────
+ * ROOT: App — src/App.jsx
+ * The OS shell orchestrating all sub-systems
+ * ────────────────────────────────────────────────────────────── */
+function App() {
+  const [booted,setBooted]=useState(false);
+  const [wallpaper,setWallpaper]=useState('#008080');
+  const [ctxMenu,setCtxMenu]=useState(null);
+  const { wins, open, close, focus, minimize, maximize, move, resize } = useWindowManager();
+
+  // Active window = highest z-index, non-minimized
+  const activeId=useMemo(()=>{
+    const vis=wins.filter(w=>!w.minimized);
+    if(!vis.length)return null;
+    return vis.reduce((a,b)=>a.zIndex>b.zIndex?a:b).id;
+  },[wins]);
+
+  const onCtx=useCallback(e=>{e.preventDefault();setCtxMenu({x:e.clientX,y:e.clientY})},[]);
+  const closeCtx=useCallback(()=>setCtxMenu(null),[]);
+
+  if(!booted) return <BootScreen onDone={()=>setBooted(true)}/>;
+
+  return (
+    <div style={{position:'fixed',inset:0,overflow:'hidden',background:wallpaper}}
+      onContextMenu={onCtx} onMouseDown={closeCtx}>
+      {/* Desktop layer */}
+      <Desktop onOpen={open} wallpaper={wallpaper}/>
+
+      {/* Window layer */}
+      {wins.map(win=>(
+        <OsWindow key={win.id} win={win} isActive={activeId===win.id}
+          onClose={close} onFocus={focus} onMin={minimize} onMax={maximize}
+          onMove={move} onResize={resize}>
+          {renderApp(win.appId, setWallpaper)}
+        </OsWindow>
+      ))}
+
+      {/* Context menu */}
+      {ctxMenu&&(
+        <ContextMenu x={ctxMenu.x} y={ctxMenu.y} onClose={closeCtx} onOpen={open}/>
+      )}
+
+      {/* Taskbar — always on top */}
+      <Taskbar wins={wins} activeId={activeId} onOpen={open}
+        onFocus={(id)=>{focus(id);const w=wins.find(x=>x.id===id);if(w?.minimized)minimize(id)}}
+        onMinimize={id=>{const w=wins.find(x=>x.id===id);if(!w)return;if(activeId===id&&!w.minimized)minimize(id);else{focus(id);if(w.minimized)minimize(id)}}}
+      />
+    </div>
+  );
+}
+
+/* ── Entry point: src/main.jsx ── */
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App/>);
+</script>
+</body>
+</html>

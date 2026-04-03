@@ -1,12 +1,25 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PixelOS 98 — Retro Desktop Environment</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
-    <title>Retro Pixel Web App</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323:wght@400&display=swap" rel="stylesheet">
+    <style>
+      * { image-rendering: pixelated; }
+      body { margin: 0; overflow: hidden; }
+      ::-webkit-scrollbar { width: 16px; }
+      ::-webkit-scrollbar-track { background: #c0c0c0; border: 2px solid #808080; }
+      ::-webkit-scrollbar-thumb {
+        background: #c0c0c0;
+        border-top: 2px solid #ffffff;
+        border-left: 2px solid #ffffff;
+        border-bottom: 2px solid #808080;
+        border-right: 2px solid #808080;
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>

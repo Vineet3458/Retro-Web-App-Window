@@ -1,93 +1,140 @@
-import React, { useState } from "react";
-import { Rnd } from "react-rnd";
+// components/Window.jsx
+// Core draggable, resizable window component — the heart of the OS UI
+import React, { useRef, useCallback, useEffect } from 'react'
 
-const Window = ({
-  title,
-  onClose,
-  emoji,
-  children,
+export default function Window({
+  id, title, x, y, width, height, zIndex,
+  minimized, maximized,
+  onClose, onFocus, onMinimize, onMaximize,
+  onMove, onResize,
   isActive,
-  defaultSize = { width: 620, height: 420 },
-  defaultPosition = { x: 120, y: 60 },
-}) => {
-  const [isMaximized, setIsMaximized] = useState(false);
-  const [isMinimized, setIsMinimized] = useState(false);
+  icon,
+  children,
+}) {
+  const windowRef = useRef(null)
+  const dragRef = useRef(null)
 
-  if (isMinimized) return null;
+  // ── Drag logic ──────────────────────────────────────────────
+  const handleTitleMouseDown = useCallback((e) => {
+    if (maximized) return
+    if (e.button !== 0) return
+    onFocus(id)
+
+    const startX = e.clientX - x
+    const startY = e.clientY - y
+
+    const onMouseMove = (e) => {
+      const nx = Math.max(0, Math.min(e.clientX - startX, window.innerWidth - width))
+      const ny = Math.max(0, Math.min(e.clientY - startY, window.innerHeight - 76))
+      onMove(id, nx, ny)
+    }
+    const onMouseUp = () => {
+      window.removeEventListener('mousemove', onMouseMove)
+      window.removeEventListener('mouseup', onMouseUp)
+    }
+    window.addEventListener('mousemove', onMouseMove)
+    window.addEventListener('mouseup', onMouseUp)
+  }, [id, x, y, width, maximized, onFocus, onMove])
+
+  // ── Resize logic (SE corner) ─────────────────────────────────
+  const handleResizeMouseDown = useCallback((e) => {
+    if (maximized) return
+    e.preventDefault()
+    e.stopPropagation()
+
+    const startX = e.clientX
+    const startY = e.clientY
+    const startW = width
+    const startH = height
+
+    const onMouseMove = (e) => {
+      const nw = Math.max(200, startW + e.clientX - startX)
+      const nh = Math.max(150, startH + e.clientY - startY)
+      onResize(id, nw, nh)
+    }
+    const onMouseUp = () => {
+      window.removeEventListener('mousemove', onMouseMove)
+      window.removeEventListener('mouseup', onMouseUp)
+    }
+    window.addEventListener('mousemove', onMouseMove)
+    window.addEventListener('mouseup', onMouseUp)
+  }, [id, width, height, maximized, onResize])
+
+  if (minimized) return null
+
+  const style = {
+    position: 'fixed',
+    left: x,
+    top: y,
+    width,
+    height,
+    zIndex,
+  }
 
   return (
-    <Rnd
-      default={{
-        x: defaultPosition.x,
-        y: defaultPosition.y,
-        width: defaultSize.width,
-        height: defaultSize.height,
-      }}
-      size={isMaximized ? { width: "100vw", height: "calc(100vh - 48px)" } : undefined}
-      position={isMaximized ? { x: 0, y: 0 } : undefined}
-      minWidth={280}
-      minHeight={180}
-      bounds="parent"
-      dragHandleClassName="window-handle"
-      className={`pixel-border flex flex-col pixel-shadow animate-snap ${
-        isMaximized ? "!transition-none" : ""
-      }`}
-      disableDragging={isMaximized}
-      enableResizing={!isMaximized}
+    <div
+      ref={windowRef}
+      style={style}
+      className={`window-chrome flex flex-col select-none ${isActive ? '' : 'opacity-95'}`}
+      onMouseDown={() => onFocus(id)}
     >
       {/* ── Title Bar ── */}
       <div
-        className={`window-handle flex justify-between items-center px-1.5 py-1 cursor-pixel select-none shrink-0 ${
-          isActive ? "pixel-bar" : "pixel-bar-inactive"
-        }`}
+        className={`title-bar ${isActive ? '' : 'inactive'}`}
+        onMouseDown={handleTitleMouseDown}
+        onDoubleClick={() => onMaximize(id)}
       >
-        {/* Title */}
-        <div className="flex items-center gap-1.5 overflow-hidden">
-          {emoji && (
-            <span className="text-sm leading-none shrink-0">{emoji}</span>
-          )}
-          <span className="font-pixel text-[9px] sm:text-[10px] truncate uppercase tracking-wider">
-            {title}
-          </span>
-        </div>
+        {/* Icon */}
+        <span className="text-xs flex-shrink-0">{icon || '🖥️'}</span>
 
-        {/* Control Buttons */}
-        <div className="flex items-center gap-0.5 shrink-0">
-          {/* Minimize */}
+        {/* Title */}
+        <span className="flex-1 truncate text-[8px]">{title}</span>
+
+        {/* Window Controls */}
+        <div className="flex gap-1 ml-1" onMouseDown={e => e.stopPropagation()}>
           <button
-            className="pixel-btn !p-0 w-5 h-5 flex items-center justify-center active:translate-y-0 text-black text-xs font-bold"
-            onClick={() => setIsMinimized(true)}
+            className="title-bar-btn hover:bg-gray-300"
+            onClick={() => onMinimize(id)}
             title="Minimize"
           >
-            _
+            <span className="block w-2 h-px bg-black mt-1" />
           </button>
-          {/* Maximize */}
           <button
-            className="pixel-btn !p-0 w-5 h-5 flex items-center justify-center active:translate-y-0 text-black text-xs font-bold"
-            onClick={() => setIsMaximized(!isMaximized)}
-            title={isMaximized ? "Restore" : "Maximize"}
+            className="title-bar-btn hover:bg-gray-300"
+            onClick={() => onMaximize(id)}
+            title="Maximize"
           >
-            {isMaximized ? "❐" : "□"}
+            <span className="block w-2 h-2 border border-black" />
           </button>
-          {/* Close */}
           <button
-            className="pixel-btn !p-0 w-5 h-5 flex items-center justify-center active:translate-y-0 bg-[#c0c0c0] hover:!bg-[#cc0000] text-black hover:text-white text-xs font-bold group"
-            onClick={onClose}
+            className="title-bar-btn hover:bg-red-400"
+            onClick={() => onClose(id)}
             title="Close"
           >
-            ✕
+            <span className="block font-bold leading-none text-[10px]">✕</span>
           </button>
         </div>
       </div>
 
-      {/* ── App Content ── */}
-      <div className="flex-1 pixel-border-in m-1 overflow-hidden cursor-default text-black bg-white relative">
-        <div className="h-full w-full overflow-auto">
-          {children}
-        </div>
+      {/* ── Content Area ── */}
+      <div className="flex-1 overflow-hidden relative bg-[#c0c0c0]">
+        {children}
       </div>
-    </Rnd>
-  );
-};
 
-export default Window;
+      {/* ── Resize Handle ── */}
+      {!maximized && (
+        <div
+          className="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize z-10"
+          onMouseDown={handleResizeMouseDown}
+          style={{
+            backgroundImage: `
+              linear-gradient(135deg, transparent 60%, #808080 60%, #808080 70%, transparent 70%),
+              linear-gradient(135deg, transparent 75%, #808080 75%, #808080 85%, transparent 85%),
+              linear-gradient(135deg, transparent 90%, #808080 90%)
+            `,
+          }}
+        />
+      )}
+    </div>
+  )
+}
